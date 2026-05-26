@@ -18,7 +18,7 @@ from peft import PeftModel
 os.makedirs("outputs", exist_ok=True)
 
 BASE_MODEL = "Qwen/Qwen2.5-Coder-3B-Instruct"
-ADAPTER_PATH = "./qwen-kalkulio-lora/final"
+ADAPTER_PATH = "./qwen-kalkulio-lora-v2/final"  # current best model
 
 SYSTEM = "You are an expert architectural AI. Generate a valid JSON floor plan for a single-family house."
 
