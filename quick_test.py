@@ -19,7 +19,7 @@ from post_process import post_process
 os.makedirs("outputs", exist_ok=True)
 
 BASE_MODEL = "Qwen/Qwen2.5-Coder-3B-Instruct"
-ADAPTER_PATH = "./qwen-kalkulio-lora-v2/final"  # current best model
+ADAPTER_PATH = "./qwen-kalkulio-lora-v3/final"  # current best model
 
 SYSTEM = "You are an expert architectural AI. Generate a valid JSON floor plan for a single-family house."
 

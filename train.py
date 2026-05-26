@@ -12,7 +12,7 @@ torch.set_float32_matmul_precision("high")
 
 # 1. Configuration
 MODEL_ID = "Qwen/Qwen2.5-Coder-3B-Instruct"
-OUTPUT_DIR = "./qwen-kalkulio-lora-v2"
+OUTPUT_DIR = "./qwen-kalkulio-lora-v3"
 DATA_DIR = "data"
 
 # 2. Load Tokenizer
@@ -65,22 +65,21 @@ lora_config = LoraConfig(
 # Tailored for RTX PRO 6000 (48GB VRAM)
 training_args = SFTConfig(
     output_dir=OUTPUT_DIR,
-    # Conservative-but-fast config. Qwen's 152k vocab makes the lm_head logits
-    # tensor a memory monster — and TRL's .contiguous() call doubles it briefly.
-    # Real ceiling on this card with seq 4096 is ~batch 4 per device.
+    # v3 config: tuned for the larger dataset (~2500 examples after augmentation).
+    # batch 4 × grad_accum 4 = effective 16. Qwen's 152k vocab caps per-device batch.
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
-    gradient_accumulation_steps=4,  # effective batch = 16
+    gradient_accumulation_steps=4,
     gradient_checkpointing=True,
     learning_rate=2e-4,
     lr_scheduler_type="cosine",
-    warmup_steps=10,
-    num_train_epochs=5,
-    logging_steps=5,
+    warmup_ratio=0.03,              # ~3% warmup — scales with total steps
+    num_train_epochs=4,             # more data per epoch → fewer epochs needed
+    logging_steps=20,
     eval_strategy="steps",
-    eval_steps=20,
+    eval_steps=100,
     save_strategy="steps",
-    save_steps=20,
+    save_steps=100,
     save_total_limit=3,
     load_best_model_at_end=True,
     metric_for_best_model="eval_loss",
@@ -89,7 +88,7 @@ training_args = SFTConfig(
     tf32=True,
     report_to="none",
     optim="adamw_torch_fused",
-    max_length=4096,                # same as your successful v1 run
+    max_length=4096,
     dataloader_num_workers=4,
     dataloader_pin_memory=True,
 )

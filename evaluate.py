@@ -30,7 +30,7 @@ from post_process import post_process, _polygon_area
 
 
 BASE_MODEL = "Qwen/Qwen2.5-Coder-3B-Instruct"
-DEFAULT_ADAPTER = "./qwen-kalkulio-lora-v2/final"
+DEFAULT_ADAPTER = "./qwen-kalkulio-lora-v3/final"
 
 SYSTEM = "You are an expert architectural AI. Generate a valid JSON floor plan for a single-family house."
 USER_TEMPLATE = "Generate a floor plan for a house with an approximate area of {area}m2."
