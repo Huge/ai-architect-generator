@@ -1,14 +1,18 @@
+# Python envs — never commit
 kalkulio-env/
 venv/
-raw_data/
-data/
-kalkulio-adapters/
-qwen-kalkulio-lora/
-qwen-kalkulio-lora-v2/
-qwen-kalkulio-lora-*/
-logs/
-outputs/
-.DS_Store
 __pycache__/
 *.pyc
-*.log
+.DS_Store
+
+# Model adapters: too large for git, push to HuggingFace Hub instead.
+# (See README for hf-hub upload instructions)
+kalkulio-adapters/
+qwen-kalkulio-lora*/
+
+# We DO want to back up the rest:
+#   raw_data/  - source + synthetic training plans
+#   data/      - preprocessed train.jsonl (regeneratable but safer to keep)
+#   logs/      - training logs (small, valuable for debugging)
+#   outputs/   - sample generations (small, useful for portfolio/demo)
+#   *.png      - rendered floor plans (small, useful for README)
