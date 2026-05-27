@@ -134,29 +134,65 @@ _CZ_LABELS = {
     "Bath": "Koupelna",
     "Entry": "Vstup",
     "Dining": "Jídelna",
+    "DiningRoom": "Jídelna",
     "Hall": "Hala",
+    "Hallway": "Chodba",
+    "Vestibule": "Vestibul",
     "Closet": "Šatna",
     "Storage": "Sklad",
+    "Garage": "Garáž",
     "Office": "Pracovna",
+    "Sauna": "Sauna",
+    "Laundry": "Prádelna",
+    "Pantry": "Spíž",
+    "Utility": "Technická",
+    "Room": "Pokoj",
+    "Pokoj": "Pokoj",
 }
 
 
 def fix_room_labels(plan: dict) -> dict:
-    """Correct obviously-wrong room labels — but never create duplicate LivingRooms.
+    """Correct obviously-wrong room labels, prevent duplicates, ensure every
+    room has a known type + Czech name.
 
-    A real house has ONE LivingRoom. If we'd be creating a second one, fall back
-    to Bedroom or Dining depending on size.
+    Rules:
+      - Only ONE of: LivingRoom, Kitchen, Dining, Entry, Hall (singletons)
+      - Multiple Bedroom/Bath/Closet are allowed
+      - If no LivingRoom exists, promote the largest unassigned room
+      - Every room ends up with a valid type and Czech `nazev`
     """
     rooms = plan.get("prostory", [])
-    existing_types = {r.get("typ") for r in rooms}
+    if not rooms:
+        return plan
 
-    def pick(new_typ: str, fallback: str) -> str:
-        """If new_typ is LivingRoom and we already have one, use fallback."""
-        if new_typ == "LivingRoom" and "LivingRoom" in existing_types:
+    SINGLETON_TYPES = {"LivingRoom", "Kitchen", "Dining", "Entry", "Hall"}
+    existing_types: set[str] = set()
+
+    # Pass 1: normalize unknown/missing types
+    for r in rooms:
+        t = r.get("typ", "Undefined")
+        if t not in _CZ_LABELS:
+            r["typ"] = "Undefined"  # mark for relabeling in pass 3
+
+    # Pass 2: keep existing valid singletons (first one wins, rest downgraded)
+    for r in rooms:
+        t = r.get("typ", "Undefined")
+        if t in SINGLETON_TYPES:
+            if t not in existing_types:
+                existing_types.add(t)
+            else:
+                r["typ"] = "Bedroom"  # downgrade duplicate singleton
+        elif t in _CZ_LABELS and t not in SINGLETON_TYPES:
+            existing_types.add(t)  # track non-singletons for completeness
+
+    def pick(preferred: str, fallback: str) -> str:
+        if preferred in SINGLETON_TYPES and preferred in existing_types:
+            existing_types.add(fallback)
             return fallback
-        existing_types.add(new_typ)
-        return new_typ
+        existing_types.add(preferred)
+        return preferred
 
+    # Pass 3: relabel rooms with obviously-wrong or Undefined types based on area
     for r in rooms:
         area = r.get("plocha_m2", 0)
         typ = r.get("typ", "Undefined")
@@ -165,9 +201,11 @@ def fix_room_labels(plan: dict) -> dict:
         if typ in ("Entry", "Vestibule", "Hall", "Hallway") and area > 15:
             new_typ = pick("LivingRoom" if area > 25 else "Dining", "Bedroom")
         elif typ == "Bath" and area > 15:
-            new_typ = pick("Bedroom", "Bedroom")
+            new_typ = "Bedroom"
+            existing_types.add(new_typ)
         elif typ == "Closet" and area > 10:
-            new_typ = pick("Bedroom" if area > 12 else "Storage", "Storage")
+            new_typ = "Bedroom" if area > 12 else "Storage"
+            existing_types.add(new_typ)
         elif typ == "Kitchen" and area > 40:
             new_typ = pick("LivingRoom", "Bedroom")
         elif typ == "Bedroom" and area > 45:
@@ -177,49 +215,59 @@ def fix_room_labels(plan: dict) -> dict:
                 new_typ = pick("LivingRoom", "Bedroom")
             elif area >= 10:
                 new_typ = "Bedroom"
+                existing_types.add(new_typ)
             elif area >= 5:
-                new_typ = "Dining"
+                new_typ = pick("Dining", "Bedroom")
             else:
                 new_typ = "Bath"
 
         if new_typ:
             r["typ"] = new_typ
-            r["nazev"] = _CZ_LABELS.get(new_typ, new_typ)
+
+    # Pass 4: if no LivingRoom yet, promote the LARGEST eligible room
+    if "LivingRoom" not in existing_types:
+        candidates = sorted(
+            [r for r in rooms if r.get("typ") in ("Bedroom", "Dining", "Hall")],
+            key=lambda r: r.get("plocha_m2", 0),
+            reverse=True,
+        )
+        if candidates:
+            candidates[0]["typ"] = "LivingRoom"
+            existing_types.add("LivingRoom")
+
+    # Pass 5: guarantee every room has a Czech nazev matching its final typ
+    for r in rooms:
+        t = r.get("typ", "Undefined")
+        if t not in _CZ_LABELS:
+            t = "Room"
+            r["typ"] = t
+        r["nazev"] = _CZ_LABELS[t]
 
     return plan
 
 
-def drop_disconnected_room_islands(plan: dict, share_threshold: float = 0.5) -> dict:
-    """Keep only rooms that share at least one wall segment with another room.
+def drop_disconnected_room_islands(plan: dict, max_gap: float = 0.5) -> dict:
+    """Keep only rooms in the largest physically-connected cluster.
 
-    Two rooms are 'connected' if their polygon edges overlap (share a wall) for
-    at least `share_threshold` meters. This catches the case where a room is
-    bbox-adjacent but isn't actually sharing a wall with anyone — i.e. it's
-    floating in its own little island.
+    Two rooms are 'connected' if their bounding boxes are within `max_gap` meters
+    of each other. Anything floating off in its own island gets dropped.
     """
     rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
     if len(rooms) <= 1:
         return plan
 
-    def edges(poly):
-        return [(poly[i], poly[(i + 1) % len(poly)]) for i in range(len(poly))]
+    def bbox(r):
+        xs = [p[0] for p in r["polygon"]]
+        ys = [p[1] for p in r["polygon"]]
+        return (min(xs), min(ys), max(xs), max(ys))
 
-    def edge_overlap_length(e1, e2, eps: float = 0.15) -> float:
-        """Length of the overlap between two collinear-ish edges (0 if not collinear)."""
-        (a1, a2), (b1, b2) = e1, e2
-        # Both horizontal at same y
-        if abs(a1[1] - a2[1]) < eps and abs(b1[1] - b2[1]) < eps and abs(a1[1] - b1[1]) < eps:
-            ax1, ax2 = sorted([a1[0], a2[0]])
-            bx1, bx2 = sorted([b1[0], b2[0]])
-            return max(0.0, min(ax2, bx2) - max(ax1, bx1))
-        # Both vertical at same x
-        if abs(a1[0] - a2[0]) < eps and abs(b1[0] - b2[0]) < eps and abs(a1[0] - b1[0]) < eps:
-            ay1, ay2 = sorted([a1[1], a2[1]])
-            by1, by2 = sorted([b1[1], b2[1]])
-            return max(0.0, min(ay2, by2) - max(ay1, by1))
-        return 0.0
+    def bbox_distance(b1, b2):
+        """0 if bboxes overlap, otherwise the closest gap in meters."""
+        dx = max(b1[0] - b2[2], b2[0] - b1[2], 0)
+        dy = max(b1[1] - b2[3], b2[1] - b1[3], 0)
+        return (dx * dx + dy * dy) ** 0.5
 
-    room_edges = [edges(r["polygon"]) for r in rooms]
+    boxes = [bbox(r) for r in rooms]
     n = len(rooms)
 
     parent = list(range(n))
@@ -237,14 +285,8 @@ def drop_disconnected_room_islands(plan: dict, share_threshold: float = 0.5) -> 
 
     for i in range(n):
         for j in range(i + 1, n):
-            for ei in room_edges[i]:
-                for ej in room_edges[j]:
-                    if edge_overlap_length(ei, ej) >= share_threshold:
-                        union(i, j)
-                        break
-                else:
-                    continue
-                break
+            if bbox_distance(boxes[i], boxes[j]) <= max_gap:
+                union(i, j)
 
     clusters: dict[int, list[int]] = {}
     for i in range(n):
@@ -257,6 +299,52 @@ def drop_disconnected_room_islands(plan: dict, share_threshold: float = 0.5) -> 
     keep_ids = {rooms[i].get("id") for i in largest}
 
     plan["prostory"] = [r for r in plan.get("prostory", []) if r.get("id") in keep_ids]
+    return plan
+
+
+def snap_rooms_together(plan: dict, snap_distance: float = 1.0) -> dict:
+    """Snap room polygon vertices to nearby vertices of OTHER rooms.
+
+    The model often produces rooms that are *almost* touching (e.g. 0.3m gap).
+    This snaps any room vertex within `snap_distance` of another room's vertex
+    to that other vertex, eliminating the gap and making walls properly shared.
+    """
+    rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
+    if len(rooms) <= 1:
+        return plan
+
+    # Collect all vertices from all rooms
+    all_vertices = []
+    for r in rooms:
+        for p in r["polygon"]:
+            all_vertices.append((p[0], p[1]))
+
+    def closest_vertex(p, exclude_idx):
+        best = None
+        best_d = snap_distance
+        px, py = p
+        for i, (qx, qy) in enumerate(all_vertices):
+            if i == exclude_idx:
+                continue
+            d = ((qx - px) ** 2 + (qy - py) ** 2) ** 0.5
+            if d > 0 and d < best_d:
+                best_d = d
+                best = (qx, qy)
+        return best
+
+    # Snap each vertex to its nearest neighbor (from a different room)
+    idx = 0
+    for r in rooms:
+        new_poly = []
+        for p in r["polygon"]:
+            snapped = closest_vertex(p, idx)
+            if snapped is not None:
+                new_poly.append([snapped[0], snapped[1]])
+            else:
+                new_poly.append([p[0], p[1]])
+            idx += 1
+        r["polygon"] = new_poly
+
     return plan
 
 
@@ -875,7 +963,8 @@ def post_process(plan: dict, target_area: Optional[float] = None) -> dict:
     plan = recompute_areas(plan)
     plan = drop_tiny_rooms(plan)
     plan = drop_overlapping_rooms(plan)
-    plan = drop_disconnected_room_islands(plan)
+    plan = snap_rooms_together(plan)              # pull near-touching rooms together
+    plan = drop_disconnected_room_islands(plan)   # drop anything still floating
     plan = close_polygons(plan)
     plan = recompute_areas(plan)
 
