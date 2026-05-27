@@ -142,42 +142,39 @@ _CZ_LABELS = {
 
 
 def fix_room_labels(plan: dict) -> dict:
-    """Correct obviously-wrong room labels based on area.
+    """Correct obviously-wrong room labels — but never create duplicate LivingRooms.
 
-    The model sometimes mislabels rooms (e.g. a 67 m² 'Entry'). This applies
-    architectural common sense to relabel rooms whose area doesn't match
-    their type.
+    A real house has ONE LivingRoom. If we'd be creating a second one, fall back
+    to Bedroom or Dining depending on size.
     """
-    for r in plan.get("prostory", []):
+    rooms = plan.get("prostory", [])
+    existing_types = {r.get("typ") for r in rooms}
+
+    def pick(new_typ: str, fallback: str) -> str:
+        """If new_typ is LivingRoom and we already have one, use fallback."""
+        if new_typ == "LivingRoom" and "LivingRoom" in existing_types:
+            return fallback
+        existing_types.add(new_typ)
+        return new_typ
+
+    for r in rooms:
         area = r.get("plocha_m2", 0)
         typ = r.get("typ", "Undefined")
-
         new_typ = None
 
-        # Entry/Vestibule/Hall: should be 2-15 m²
         if typ in ("Entry", "Vestibule", "Hall", "Hallway") and area > 15:
-            new_typ = "LivingRoom" if area > 25 else "Dining"
-
-        # Bath: should be 1.5-12 m²
+            new_typ = pick("LivingRoom" if area > 25 else "Dining", "Bedroom")
         elif typ == "Bath" and area > 15:
-            new_typ = "LivingRoom" if area > 25 else "Bedroom"
-
-        # Closet: should be 1-8 m²
+            new_typ = pick("Bedroom", "Bedroom")
         elif typ == "Closet" and area > 10:
-            new_typ = "Bedroom" if area > 12 else "Storage"
-
-        # Kitchen: shouldn't be >40 m² in a normal house
+            new_typ = pick("Bedroom" if area > 12 else "Storage", "Storage")
         elif typ == "Kitchen" and area > 40:
-            new_typ = "LivingRoom"
-
-        # Bedroom: shouldn't be >40 m²
+            new_typ = pick("LivingRoom", "Bedroom")
         elif typ == "Bedroom" and area > 45:
-            new_typ = "LivingRoom"
-
-        # Generic "Room"/"Pokoj"/"Undefined": assign based on size
+            new_typ = pick("LivingRoom", "Bedroom")
         elif typ in ("Room", "Pokoj", "Undefined"):
             if area >= 25:
-                new_typ = "LivingRoom"
+                new_typ = pick("LivingRoom", "Bedroom")
             elif area >= 10:
                 new_typ = "Bedroom"
             elif area >= 5:
@@ -192,34 +189,39 @@ def fix_room_labels(plan: dict) -> dict:
     return plan
 
 
-def drop_disconnected_room_islands(plan: dict, eps: float = 0.5) -> dict:
-    """Keep only rooms that belong to the largest connected cluster.
+def drop_disconnected_room_islands(plan: dict, share_threshold: float = 0.5) -> dict:
+    """Keep only rooms that share at least one wall segment with another room.
 
-    Two rooms are 'connected' if their bounding boxes overlap or touch within
-    `eps` meters. This drops isolated rooms floating off in their own enclave
-    (e.g. a bedroom 5 m away from the rest of the house).
+    Two rooms are 'connected' if their polygon edges overlap (share a wall) for
+    at least `share_threshold` meters. This catches the case where a room is
+    bbox-adjacent but isn't actually sharing a wall with anyone — i.e. it's
+    floating in its own little island.
     """
     rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
     if len(rooms) <= 1:
         return plan
 
-    def bbox(r):
-        xs = [p[0] for p in r["polygon"]]
-        ys = [p[1] for p in r["polygon"]]
-        return (min(xs), min(ys), max(xs), max(ys))
+    def edges(poly):
+        return [(poly[i], poly[(i + 1) % len(poly)]) for i in range(len(poly))]
 
-    def touches(b1, b2):
-        return not (
-            b1[2] + eps < b2[0]
-            or b2[2] + eps < b1[0]
-            or b1[3] + eps < b2[1]
-            or b2[3] + eps < b1[1]
-        )
+    def edge_overlap_length(e1, e2, eps: float = 0.15) -> float:
+        """Length of the overlap between two collinear-ish edges (0 if not collinear)."""
+        (a1, a2), (b1, b2) = e1, e2
+        # Both horizontal at same y
+        if abs(a1[1] - a2[1]) < eps and abs(b1[1] - b2[1]) < eps and abs(a1[1] - b1[1]) < eps:
+            ax1, ax2 = sorted([a1[0], a2[0]])
+            bx1, bx2 = sorted([b1[0], b2[0]])
+            return max(0.0, min(ax2, bx2) - max(ax1, bx1))
+        # Both vertical at same x
+        if abs(a1[0] - a2[0]) < eps and abs(b1[0] - b2[0]) < eps and abs(a1[0] - b1[0]) < eps:
+            ay1, ay2 = sorted([a1[1], a2[1]])
+            by1, by2 = sorted([b1[1], b2[1]])
+            return max(0.0, min(ay2, by2) - max(ay1, by1))
+        return 0.0
 
-    boxes = [bbox(r) for r in rooms]
+    room_edges = [edges(r["polygon"]) for r in rooms]
     n = len(rooms)
 
-    # Union-Find clustering
     parent = list(range(n))
 
     def find(x):
@@ -235,14 +237,19 @@ def drop_disconnected_room_islands(plan: dict, eps: float = 0.5) -> dict:
 
     for i in range(n):
         for j in range(i + 1, n):
-            if touches(boxes[i], boxes[j]):
-                union(i, j)
+            for ei in room_edges[i]:
+                for ej in room_edges[j]:
+                    if edge_overlap_length(ei, ej) >= share_threshold:
+                        union(i, j)
+                        break
+                else:
+                    continue
+                break
 
     clusters: dict[int, list[int]] = {}
     for i in range(n):
         clusters.setdefault(find(i), []).append(i)
 
-    # Largest cluster by total area
     def cluster_area(indices):
         return sum(rooms[i].get("plocha_m2", 0) for i in indices)
 

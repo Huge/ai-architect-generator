@@ -256,13 +256,17 @@ def _fallback_plan(area_m2: float) -> dict:
     }
 
 
-def generate_plan(area_m2, max_attempts=3):
+def generate_plan(area_m2, max_attempts=6):
     load_model()
 
     best_plan = None
     best_score = float("-inf")
     best_attempt = 0
     invalid_count = 0
+
+    # Stagger temperature across attempts: start tight, widen if early ones fail.
+    # This gives diversity without going wild on attempt 1.
+    temperatures = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 
     for attempt in range(1, max_attempts + 1):
         try:
@@ -273,12 +277,13 @@ def generate_plan(area_m2, max_attempts=3):
             prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
             inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
+            temp = temperatures[min(attempt - 1, len(temperatures) - 1)]
             with torch.no_grad():
                 out = model.generate(
                     **inputs,
                     max_new_tokens=8192,
                     do_sample=True,
-                    temperature=0.7,
+                    temperature=temp,
                     top_p=0.9,
                     pad_token_id=tokenizer.eos_token_id,
                 )
