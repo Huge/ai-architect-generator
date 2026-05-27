@@ -69,7 +69,40 @@ def _wall_length(w: dict) -> float:
     return (dx * dx + dy * dy) ** 0.5
 
 
+def _point_on_segment(point: list[float], seg_start: list[float], seg_end: list[float],
+                      eps: float = 0.15) -> bool:
+    """True if `point` lies within `eps` meters of the segment (not just its endpoints)."""
+    px, py = point[0], point[1]
+    sx, sy = seg_start[0], seg_start[1]
+    ex, ey = seg_end[0], seg_end[1]
+    dx, dy = ex - sx, ey - sy
+    seg_len_sq = dx * dx + dy * dy
+    if seg_len_sq == 0:
+        return abs(px - sx) < eps and abs(py - sy) < eps
+    t = ((px - sx) * dx + (py - sy) * dy) / seg_len_sq
+    t = max(0.0, min(1.0, t))
+    cx = sx + t * dx
+    cy = sy + t * dy
+    return ((px - cx) ** 2 + (py - cy) ** 2) ** 0.5 < eps
+
+
 # ----- Cleanup functions -------------------------------------------------------
+
+def drop_degenerate_walls(plan: dict, min_len: float = 0.05) -> dict:
+    """Remove walls shorter than `min_len` meters (zero-length / collapsed walls)."""
+    plan["steny"] = [w for w in plan.get("steny", []) if _wall_length(w) >= min_len]
+    return plan
+
+
+# Valid room types for a single-family house. Anything else is model hallucination
+# (Elevator, Stairs, Apartment, etc.) and gets dropped.
+VALID_ROOM_TYPES = {
+    "LivingRoom", "Bedroom", "Kitchen", "Bath", "Dining", "DiningRoom",
+    "Entry", "Closet", "Hall", "Hallway", "Vestibule", "Storage",
+    "Garage", "Office", "Sauna", "Laundry", "Pantry", "Utility",
+    "Room", "Pokoj", "Undefined",
+}
+
 
 def drop_outdoor_rooms(plan: dict) -> dict:
     """Remove rooms explicitly tagged as outdoor (venkovni=true)."""
@@ -81,34 +114,111 @@ def drop_outdoor_rooms(plan: dict) -> dict:
     return plan
 
 
-def drop_orphan_rooms(plan: dict, margin: float = 0.1, max_outside_ratio: float = 0.25) -> dict:
-    """Remove rooms whose polygon lies (mostly) outside the wall envelope.
+def drop_invalid_room_types(plan: dict) -> dict:
+    """Remove rooms whose `typ` isn't appropriate for a single-family house.
 
-    A room is dropped if more than `max_outside_ratio` of its vertices fall outside
-    the wall bounding box (extended by `margin` to allow for small rounding noise).
-    This catches both fully-orphan rooms and ones that bleed across the outer wall.
+    Catches hallucinations like "Elevator", "Stairs", "Apartment", etc.
+    """
+    plan["prostory"] = [
+        r for r in plan.get("prostory", [])
+        if r.get("typ", "Undefined") in VALID_ROOM_TYPES
+    ]
+    return plan
+
+
+def drop_tiny_rooms(plan: dict, min_area: float = 1.0) -> dict:
+    """Remove rooms smaller than `min_area` m² (zero / collapsed / garbage rooms).
+
+    1.0 m² is a generous floor — typical toilets are 1.2-1.5 m². Anything smaller
+    is almost certainly model noise.
+    """
+    plan["prostory"] = [
+        r for r in plan.get("prostory", [])
+        if r.get("plocha_m2", 0) >= min_area
+    ]
+    return plan
+
+
+def _point_in_polygon(point: list[float], polygon: list[list[float]]) -> bool:
+    """Ray-casting point-in-polygon test (handles concave polygons)."""
+    x, y = point[0], point[1]
+    n = len(polygon)
+    inside = False
+    j = n - 1
+    for i in range(n):
+        xi, yi = polygon[i][0], polygon[i][1]
+        xj, yj = polygon[j][0], polygon[j][1]
+        if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / ((yj - yi) or 1e-12) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+def drop_overlapping_rooms(plan: dict, size_ratio: float = 0.5) -> dict:
+    """Drop a smaller room only if its centroid is inside a SIGNIFICANTLY larger room.
+
+    Catches "bathroom polygon placed inside living-room polygon" without false-
+    positives on adjacent rooms of similar size.
+
+    A room is dropped only if BOTH:
+      - its centroid lies inside another room's polygon, AND
+      - that other room is at least `1/size_ratio` × bigger (default: 2× bigger)
+    """
+    rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
+    rooms.sort(key=lambda r: r.get("plocha_m2", 0), reverse=True)
+    kept = []
+    for r in rooms:
+        cx, cy = _polygon_centroid(r["polygon"])
+        my_area = r.get("plocha_m2", 0)
+        is_engulfed = False
+        for k in kept:
+            k_area = k.get("plocha_m2", 0)
+            if k_area > 0 and (my_area / k_area) < size_ratio:
+                if _point_in_polygon([cx, cy], k["polygon"]):
+                    is_engulfed = True
+                    break
+        if not is_engulfed:
+            kept.append(r)
+    plan["prostory"] = kept
+    return plan
+
+
+def drop_orphan_rooms(
+    plan: dict,
+    margin: float = 0.1,
+    max_outside_ratio: float = 0.20,
+    hard_outside_distance: float = 1.0,
+) -> dict:
+    """Remove rooms whose polygon lies (mostly or significantly) outside the wall envelope.
+
+    A room is dropped if EITHER:
+      - more than `max_outside_ratio` of its vertices fall outside the envelope, OR
+      - any single vertex is more than `hard_outside_distance` meters outside.
+
+    The hard check catches rooms that "stick out" with only one vertex
+    (e.g. a closet bleeding 2.5 m past the right wall).
     """
     walls = plan.get("steny", [])
     if not walls:
         return plan
     min_x, min_y, max_x, max_y = _wall_envelope(walls)
 
-    def is_outside(p: list[float]) -> bool:
+    def outside_distance(p: list[float]) -> float:
+        """Distance the point lies outside the envelope (0 if inside)."""
         x, y = p[0], p[1]
-        return (
-            x < (min_x - margin)
-            or x > (max_x + margin)
-            or y < (min_y - margin)
-            or y > (max_y + margin)
-        )
+        dx = max(min_x - x, x - max_x, 0.0)
+        dy = max(min_y - y, y - max_y, 0.0)
+        return (dx * dx + dy * dy) ** 0.5
 
     kept = []
     for r in plan.get("prostory", []):
         poly = r.get("polygon") or []
         if not poly:
             continue
-        outside_count = sum(1 for p in poly if is_outside(p))
-        if outside_count / len(poly) <= max_outside_ratio:
+        distances = [outside_distance(p) for p in poly]
+        outside_count = sum(1 for d in distances if d > margin)
+        far_out = max(distances)
+        if outside_count / len(poly) <= max_outside_ratio and far_out <= hard_outside_distance:
             kept.append(r)
     plan["prostory"] = kept
     return plan
@@ -173,6 +283,158 @@ def snap_wall_endpoints(plan: dict, eps: float = 0.15) -> dict:
     return plan
 
 
+def drop_floating_walls(plan: dict, eps: float = 0.15, max_passes: int = 3) -> dict:
+    """Remove walls whose endpoints aren't anchored to another wall.
+
+    An endpoint is "anchored" if:
+      - it has an explicit od_constraint/do_constraint pointing at a valid wall, OR
+      - it lies within `eps` meters of another wall's segment
+
+    Runs iteratively up to `max_passes` times because dropping a wall can make
+    other walls become floating in turn.
+    """
+    walls = plan.get("steny", [])
+    if not walls:
+        return plan
+
+    for _ in range(max_passes):
+        walls_by_id = {w["id"]: w for w in walls if "id" in w}
+
+        def is_anchored(point: list[float], my_idx: int, constraint) -> bool:
+            if constraint and isinstance(constraint, dict):
+                host_id = constraint.get("host")
+                host = walls_by_id.get(host_id)
+                # Constraint host must exist AND the endpoint must actually lie
+                # on/near that host wall. Otherwise we treat it as unanchored noise.
+                if host and _point_on_segment(point, host["od"], host["do"], eps * 1.5):
+                    return True
+            for i, other in enumerate(walls):
+                if i == my_idx:
+                    continue
+                if _point_on_segment(point, other["od"], other["do"], eps):
+                    return True
+            return False
+
+        kept = []
+        for i, w in enumerate(walls):
+            od_anchored = is_anchored(w["od"], i, w.get("od_constraint"))
+            do_anchored = is_anchored(w["do"], i, w.get("do_constraint"))
+            if od_anchored and do_anchored:
+                kept.append(w)
+
+        if len(kept) == len(walls):
+            break  # nothing to drop this pass — converged
+        walls = kept
+
+    plan["steny"] = walls
+    return plan
+
+
+def drop_extreme_length_walls(plan: dict, max_wall_length: float = 35.0, factor: float = 6.0) -> dict:
+    """Remove absurdly long wall segments (spikes/stray rays).
+
+    Keeps walls that are plausible for house-scale geometry while dropping
+    pathological outliers like 80m+ rays from a 90m² floor plan.
+    """
+    walls = plan.get("steny", [])
+    if not walls:
+        return plan
+
+    lengths = [_wall_length(w) for w in walls]
+    positive = sorted(l for l in lengths if l > 0)
+    if not positive:
+        return plan
+    median_len = positive[len(positive) // 2]
+    dynamic_cap = max(max_wall_length, median_len * factor)
+
+    plan["steny"] = [w for w in walls if _wall_length(w) <= dynamic_cap]
+    return plan
+
+
+def drop_walls_outside_room_bbox(plan: dict, margin: float = 0.2, outside_ratio: float = 0.45) -> dict:
+    """Drop wall segments that live mostly outside the room bounding box.
+
+    This catches long horizontal/vertical rays that shoot out from the floor plan
+    while preserving walls that are near the actual room envelope.
+    """
+    rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
+    walls = plan.get("steny", [])
+    if not rooms or not walls:
+        return plan
+
+    xs, ys = [], []
+    for r in rooms:
+        for p in r["polygon"]:
+            xs.append(p[0])
+            ys.append(p[1])
+    min_x, max_x = min(xs) - margin, max(xs) + margin
+    min_y, max_y = min(ys) - margin, max(ys) + margin
+
+    def outside(x: float, y: float) -> bool:
+        return x < min_x or x > max_x or y < min_y or y > max_y
+
+    kept = []
+    for w in walls:
+        x1, y1 = w["od"]
+        x2, y2 = w["do"]
+        outside_count = 0
+        # Uniform sampling along segment to estimate outside proportion.
+        for i in range(11):
+            t = i / 10.0
+            x = x1 + (x2 - x1) * t
+            y = y1 + (y2 - y1) * t
+            if outside(x, y):
+                outside_count += 1
+        frac = outside_count / 11.0
+        if frac <= outside_ratio:
+            kept.append(w)
+    plan["steny"] = kept
+    return plan
+
+
+def trim_wall_overhangs(plan: dict, margin: float = 0.3) -> dict:
+    """Trim wall endpoints that extend past the room bounding box.
+
+    Instead of dropping the whole wall, this just truncates the 'od' or 'do'
+    coordinates to align with the outermost room boundary. This fixes the
+    long horizontal/vertical spikes without deleting valid interior walls.
+    """
+    rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
+    walls = plan.get("steny", [])
+    if not rooms or not walls:
+        return plan
+
+    xs, ys = [], []
+    for r in rooms:
+        for p in r["polygon"]:
+            xs.append(p[0])
+            ys.append(p[1])
+    min_x, max_x = min(xs) - margin, max(xs) + margin
+    min_y, max_y = min(ys) - margin, max(ys) + margin
+
+    kept = []
+    for w in walls:
+        x1, y1 = w["od"]
+        x2, y2 = w["do"]
+        
+        # Clamp coordinates to the bounding box
+        x1 = max(min_x, min(max_x, x1))
+        y1 = max(min_y, min(max_y, y1))
+        x2 = max(min_x, min(max_x, x2))
+        y2 = max(min_y, min(max_y, y2))
+        
+        # If clamping collapsed the wall entirely, drop it
+        if abs(x2 - x1) < 0.05 and abs(y2 - y1) < 0.05:
+            continue
+            
+        w["od"] = [round(x1, 3), round(y1, 3)]
+        w["do"] = [round(x2, 3), round(y2, 3)]
+        kept.append(w)
+
+    plan["steny"] = kept
+    return plan
+
+
 def drop_disconnected_openings(plan: dict, tol: float = 0.1) -> dict:
     """Remove windows/doors whose host wall is missing or whose position overflows the wall."""
     walls_by_id = {w["id"]: w for w in plan.get("steny", []) if "id" in w}
@@ -188,6 +450,39 @@ def drop_disconnected_openings(plan: dict, tol: float = 0.1) -> dict:
             continue
         kept.append(o)
     plan["otvory"] = kept
+    return plan
+
+
+def orthogonalize_walls(plan: dict, tol: float = 0.2) -> dict:
+    """Force near-axis-aligned walls to be exactly horizontal/vertical.
+
+    Many generated walls are almost axis-aligned but off by a few centimeters
+    (e.g. y=1.74 vs y=1.76). Some viewers interpret this as non-intersecting
+    geometry and draw long extension rays. This normalizes those walls.
+    """
+    for w in plan.get("steny", []):
+        x1, y1 = w["od"]
+        x2, y2 = w["do"]
+        dx, dy = x2 - x1, y2 - y1
+        if abs(dy) <= tol and abs(dx) > abs(dy):
+            y2 = y1
+        elif abs(dx) <= tol and abs(dy) > abs(dx):
+            x2 = x1
+        w["od"] = [round(x1, 2), round(y1, 2)]
+        w["do"] = [round(x2, 2), round(y2, 2)]
+    return plan
+
+
+def strip_wall_constraints(plan: dict) -> dict:
+    """Remove wall constraint metadata from final output.
+
+    Coordinates are already explicit after cleanup/snap/scale. Keeping stale
+    od_constraint/do_constraint metadata can confuse downstream viewers that
+    try to re-solve constraints and draw long construction rays.
+    """
+    for w in plan.get("steny", []):
+        w["od_constraint"] = None
+        w["do_constraint"] = None
     return plan
 
 
@@ -244,6 +539,94 @@ def rescale_to_target_area(plan: dict, target_area: float) -> dict:
 
 # ----- Main orchestrator -------------------------------------------------------
 
+def has_closed_exterior_loop(plan: dict, eps: float = 0.15) -> bool:
+    """
+    Validates if the walls in the floor plan form at least one fully closed loop.
+    
+    Converts wall segments into a graph and checks the largest connected 
+    component. If the outermost structure has dead ends (nodes with degree < 2), 
+    or doesn't contain a cycle, the house is not "watertight".
+    """
+    walls = plan.get("steny", [])
+    if not walls:
+        return False
+
+    adj: dict[tuple[float, float], set[tuple[float, float]]] = {}
+    
+    def _get_key(pt: list[float]) -> tuple[float, float]:
+        return (round(pt[0], 2), round(pt[1], 2))
+
+    for w in walls:
+        p1 = _get_key(w["od"])
+        p2 = _get_key(w["do"])
+        
+        if p1 not in adj: adj[p1] = set()
+        if p2 not in adj: adj[p2] = set()
+        
+        if p1 != p2:
+            adj[p1].add(p2)
+            adj[p2].add(p1)
+
+    if not adj:
+        return False
+
+    visited = set()
+    components = []
+    
+    for node in adj:
+        if node not in visited:
+            comp = set()
+            stack = [node]
+            while stack:
+                curr = stack.pop()
+                if curr not in visited:
+                    visited.add(curr)
+                    comp.add(curr)
+                    stack.extend(adj[curr] - visited)
+            components.append(comp)
+            
+    largest_comp = max(components, key=len)
+    
+    xs = [pt[0] for pt in largest_comp]
+    ys = [pt[1] for pt in largest_comp]
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
+    
+    margin = eps * 2
+    
+    for node in largest_comp:
+        x, y = node
+        is_on_edge = (
+            abs(x - min_x) < margin or 
+            abs(x - max_x) < margin or 
+            abs(y - min_y) < margin or 
+            abs(y - max_y) < margin
+        )
+        
+        if is_on_edge and len(adj[node]) < 2:
+            return False
+
+    def contains_cycle(start_node: tuple[float, float]) -> bool:
+        stack = [(start_node, None)]
+        local_visited = set()
+        
+        while stack:
+            curr, parent = stack.pop()
+            if curr in local_visited:
+                return True
+            
+            local_visited.add(curr)
+            
+            for neighbor in adj[curr]:
+                if neighbor != parent:
+                    if neighbor in local_visited:
+                        return True
+                    stack.append((neighbor, curr))
+        return False
+
+    return contains_cycle(next(iter(largest_comp)))
+
+
 def post_process(plan: dict, target_area: Optional[float] = None) -> dict:
     """Run the full cleanup pipeline on a plan.
 
@@ -254,10 +637,23 @@ def post_process(plan: dict, target_area: Optional[float] = None) -> dict:
     Returns:
         The cleaned plan (mutated in place AND returned for convenience).
     """
+    plan = drop_degenerate_walls(plan)        # zero-length walls first
     plan = drop_outdoor_rooms(plan)
+    plan = drop_invalid_room_types(plan)      # "Elevator", "Stairs", etc.
     plan = snap_wall_endpoints(plan)
-    plan = drop_orphan_rooms(plan)
-    plan = drop_disconnected_openings(plan)
+    plan = drop_degenerate_walls(plan)        # snapping can collapse walls
+    plan = drop_floating_walls(plan)          # dangling/orphan wall segments
+    plan = drop_extreme_length_walls(plan)    # giant spikes / rays
+    plan = drop_orphan_rooms(plan)            # rooms outside the envelope
+    plan = recompute_areas(plan)              # need fresh areas before tiny/overlap checks
+    plan = drop_tiny_rooms(plan)              # zero / sub-1m² rooms
+    plan = drop_overlapping_rooms(plan)       # keep larger room when 2 overlap heavily
+    plan = drop_walls_outside_room_bbox(plan) # remove long external rays/spikes
+    plan = trim_wall_overhangs(plan)          # trim any remaining spikes to the bounding box
+    plan = orthogonalize_walls(plan)          # eliminate tiny slants that create viewer rays
+    plan = drop_degenerate_walls(plan)        # orthogonalization can collapse tiny segments
+    plan = drop_disconnected_openings(plan)   # also catches refs to dropped walls
+    plan = strip_wall_constraints(plan)        # avoid viewer re-solving stale constraints
     plan = close_polygons(plan)
     plan = recompute_areas(plan)
     if target_area is not None and target_area > 0:

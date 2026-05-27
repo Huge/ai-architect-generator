@@ -1,6 +1,14 @@
 kalkulio-env/
+venv/
 raw_data/
 data/
 kalkulio-adapters/
+qwen-kalkulio-lora/
+qwen-kalkulio-lora-v2/
+qwen-kalkulio-lora-*/
+logs/
+outputs/
 .DS_Store
 __pycache__/
+*.pyc
+*.log
