@@ -185,7 +185,7 @@ def render_floor_plan(plan):
         if not poly:
             continue
         rtype = r.get("typ", "Undefined")
-        label = ROOM_LABEL.get(rtype, rtype)
+        label = r.get("nazev") or ROOM_LABEL.get(rtype) or "Pokoj"
         xs = [p[0] for p in poly]
         ys = [p[1] for p in poly]
         cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
@@ -256,7 +256,7 @@ def _fallback_plan(area_m2: float) -> dict:
     }
 
 
-def generate_plan(area_m2, max_attempts=6):
+def generate_plan(area_m2, max_attempts=4, progress=gr.Progress()):
     load_model()
 
     best_plan = None
@@ -264,11 +264,10 @@ def generate_plan(area_m2, max_attempts=6):
     best_attempt = 0
     invalid_count = 0
 
-    # Stagger temperature across attempts: start tight, widen if early ones fail.
-    # This gives diversity without going wild on attempt 1.
-    temperatures = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    temperatures = [0.3, 0.5, 0.6, 0.8]
 
     for attempt in range(1, max_attempts + 1):
+        progress((attempt - 1) / max_attempts, desc=f"Attempt {attempt}/{max_attempts}...")
         try:
             messages = [
                 {"role": "system", "content": SYSTEM_PROMPT},
@@ -281,7 +280,7 @@ def generate_plan(area_m2, max_attempts=6):
             with torch.no_grad():
                 out = model.generate(
                     **inputs,
-                    max_new_tokens=8192,
+                    max_new_tokens=4096,
                     do_sample=True,
                     temperature=temp,
                     top_p=0.9,
@@ -435,6 +434,11 @@ with gr.Blocks(title="Kalkulio AI Architect", theme=gr.themes.Default(primary_hu
             )
 
 if __name__ == "__main__":
-    # Launch the Gradio app
-    # share=True creates a public huggingface link for testing
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=True)
+    # Queue with a longer per-request timeout (model + 4 attempts ~60s)
+    demo.queue(default_concurrency_limit=2, max_size=20)
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        share=True,
+        show_error=True,
+    )
