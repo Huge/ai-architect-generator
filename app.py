@@ -1,8 +1,9 @@
 import json
 import os
+import math
 import torch
 import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
+from matplotlib.patches import Polygon, Wedge
 import gradio as gr
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
@@ -31,57 +32,176 @@ def load_model():
         print("Model loaded successfully.")
 
 # --- Visualization ---
+ROOM_COLORS = {
+    "LivingRoom": "#ffe4b5",
+    "Bedroom":    "#e6e6fa",
+    "Kitchen":    "#ffdab9",
+    "Bath":       "#e0ffff",
+    "Entry":      "#f5f5dc",
+    "Dining":     "#fffacd",
+    "DiningRoom": "#fffacd",
+    "Hall":       "#f0f8ff",
+    "Hallway":    "#f0f8ff",
+    "Vestibule":  "#f5f5dc",
+    "Closet":     "#f5fffa",
+    "Storage":    "#f5fffa",
+    "Garage":     "#dcdcdc",
+    "Office":     "#fff0f5",
+    "Sauna":      "#ffe4e1",
+    "Laundry":    "#e0f7fa",
+    "Pantry":     "#fff8dc",
+    "Utility":    "#f5fffa",
+    "Room":       "#f0f0f0",
+    "Pokoj":      "#f0f0f0",
+    "Undefined":  "#f0f0f0",
+}
+
+ROOM_LABEL = {
+    "LivingRoom": "Obývák",
+    "Bedroom":    "Ložnice",
+    "Kitchen":    "Kuchyně",
+    "Bath":       "Koupelna",
+    "Entry":      "Vstup",
+    "Dining":     "Jídelna",
+    "DiningRoom": "Jídelna",
+    "Hall":       "Hala",
+    "Hallway":    "Chodba",
+    "Vestibule":  "Vestibul",
+    "Closet":     "Šatna",
+    "Storage":    "Sklad",
+    "Garage":     "Garáž",
+    "Office":     "Pracovna",
+    "Sauna":      "Sauna",
+    "Laundry":    "Prádelna",
+    "Pantry":     "Spíž",
+    "Utility":    "Tech.",
+    "Room":       "Pokoj",
+    "Pokoj":      "Pokoj",
+    "Undefined":  "Místnost",
+}
+
+
+def _opening_endpoints(wall, pozice, sirka):
+    """Return the (x, y) start/end of an opening along its host wall."""
+    x1, y1 = wall["od"]
+    x2, y2 = wall["do"]
+    dx, dy = x2 - x1, y2 - y1
+    length = math.hypot(dx, dy)
+    if length < 1e-6:
+        return None
+    ux, uy = dx / length, dy / length
+    sx = x1 + ux * pozice
+    sy = y1 + uy * pozice
+    ex = x1 + ux * (pozice + sirka)
+    ey = y1 + uy * (pozice + sirka)
+    return (sx, sy, ex, ey, ux, uy, length)
+
+
 def render_floor_plan(plan):
-    """Renders the floor plan JSON into a matplotlib figure."""
+    """Render a Kalkulio floor plan as a clean matplotlib figure.
+
+    Drawing order (back to front):
+      1. Rooms (filled polygons + thin outline)
+      2. Walls (thick dark segments) — drawn over rooms so any room polygon
+         that extends past the walls is visually clipped at the wall edge
+      3. Openings (windows = light fill on wall, doors = arc + frame)
+      4. Room labels (on top so they stay readable)
+    """
     fig, ax = plt.subplots(figsize=(10, 10))
-    
-    # Colors for different room types
-    colors = {
-        "LivingRoom": "#ffe4b5",
-        "Bedroom": "#e6e6fa",
-        "Kitchen": "#ffdab9",
-        "Bath": "#e0ffff",
-        "Entry": "#f5f5dc",
-        "Dining": "#fffacd",
-        "Hall": "#f0f8ff",
-        "Closet": "#f5fffa"
-    }
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
 
-    # 1. Draw Rooms
-    for r in plan.get("prostory", []):
+    rooms = plan.get("prostory", [])
+    walls = plan.get("steny", [])
+    openings = plan.get("otvory", [])
+    walls_by_id = {w["id"]: w for w in walls if "id" in w}
+
+    # 1. Rooms
+    for r in rooms:
         poly = r.get("polygon")
-        if not poly: continue
-        
+        if not poly:
+            continue
         rtype = r.get("typ", "Undefined")
-        color = colors.get(rtype, "#f0f0f0")
-        
-        patch = Polygon(poly, closed=True, facecolor=color, edgecolor='none', alpha=0.7)
-        ax.add_patch(patch)
-        
-        # Add text label in the center
-        xs = [p[0] for p in poly]
-        ys = [p[1] for p in poly]
-        cx, cy = sum(xs)/len(xs), sum(ys)/len(ys)
-        area = r.get("plocha_m2", 0)
-        ax.text(cx, cy, f"{rtype}\n{area} m²", ha='center', va='center', fontsize=9, 
-                bbox=dict(facecolor='white', alpha=0.5, edgecolor='none', boxstyle='round,pad=0.2'))
+        color = ROOM_COLORS.get(rtype, "#f0f0f0")
+        ax.add_patch(Polygon(
+            poly, closed=True,
+            facecolor=color, edgecolor="#cccccc",
+            linewidth=0.5, alpha=0.85, zorder=1,
+        ))
 
-    # 2. Draw Walls
-    for w in plan.get("steny", []):
+    # 2. Walls (on top of rooms; thick exterior, thinner partitions)
+    for w in walls:
         x1, y1 = w["od"]
         x2, y2 = w["do"]
-        thickness = w.get("tloustka", 0.2) * 10 # Scale thickness for visualization
-        ax.plot([x1, x2], [y1, y2], color='#2c3e50', linewidth=max(2, thickness), solid_capstyle='round')
+        thickness = w.get("tloustka") or 0.15
+        is_exterior = w.get("typ") in ("obvodova", "nosna")
+        lw = max(3.5, thickness * 14) if is_exterior else max(2.0, thickness * 12)
+        ax.plot(
+            [x1, x2], [y1, y2],
+            color="#2c3e50", linewidth=lw,
+            solid_capstyle="round", zorder=3,
+        )
 
-    # 3. Draw Openings (simplified as points/lines for now)
-    for o in plan.get("otvory", []):
-        # We don't have exact coordinates for openings without math on the host wall,
-        # but we can skip them for the basic matplotlib preview since walls/rooms show the structure.
-        pass
+    # 3. Openings
+    for o in openings:
+        wall = walls_by_id.get(o.get("stena"))
+        if not wall:
+            continue
+        pozice = o.get("pozice")
+        sirka = o.get("sirka")
+        if pozice is None or sirka is None:
+            continue
+        info = _opening_endpoints(wall, pozice, sirka)
+        if info is None:
+            continue
+        sx, sy, ex, ey, ux, uy, _ = info
+        otype = o.get("typ", "")
+        if otype == "okno":
+            ax.plot([sx, ex], [sy, ey], color="white",
+                    linewidth=4, solid_capstyle="butt", zorder=4)
+            ax.plot([sx, ex], [sy, ey], color="#5fa8d3",
+                    linewidth=2, solid_capstyle="butt", zorder=5)
+        elif otype == "dvere":
+            ax.plot([sx, ex], [sy, ey], color="white",
+                    linewidth=4, solid_capstyle="butt", zorder=4)
+            nx, ny = -uy, ux
+            cx, cy = sx, sy
+            angle_along = math.degrees(math.atan2(uy, ux))
+            ax.add_patch(Wedge(
+                center=(cx, cy), r=sirka,
+                theta1=angle_along, theta2=angle_along + 90,
+                facecolor="none", edgecolor="#e67e22",
+                linewidth=1.2, zorder=6,
+            ))
+            ax.plot(
+                [cx, cx + ux * sirka],
+                [cy, cy + uy * sirka],
+                color="#e67e22", linewidth=1.2, zorder=6,
+            )
 
-    ax.set_aspect('equal')
+    # 4. Room labels on top
+    for r in rooms:
+        poly = r.get("polygon")
+        if not poly:
+            continue
+        rtype = r.get("typ", "Undefined")
+        label = ROOM_LABEL.get(rtype, rtype)
+        xs = [p[0] for p in poly]
+        ys = [p[1] for p in poly]
+        cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
+        area = r.get("plocha_m2", 0)
+        ax.text(
+            cx, cy, f"{label}\n{area:.1f} m²",
+            ha="center", va="center", fontsize=10, color="#2c3e50",
+            bbox=dict(facecolor="white", alpha=0.85,
+                      edgecolor="#cccccc", boxstyle="round,pad=0.3"),
+            zorder=10,
+        )
+
+    ax.set_aspect("equal")
     ax.autoscale_view()
-    ax.axis('off') # Hide grid
+    ax.margins(0.05)
+    ax.axis("off")
     plt.tight_layout()
     return fig
 
