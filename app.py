@@ -206,52 +206,132 @@ def render_floor_plan(plan):
     return fig
 
 # --- Generation Logic ---
+
+def _score_plan(plan: dict, target_area: float) -> float:
+    """Score a cleaned plan. Higher is better. Used to pick the best attempt."""
+    if not plan:
+        return -1e9
+    score = 0.0
+    rooms = plan.get("prostory") or []
+    walls = plan.get("steny") or []
+    if has_closed_exterior_loop(plan):
+        score += 100
+    score += min(len(rooms), 10) * 3
+    score += min(len(walls), 20) * 0.5
+    interior_area = sum(r.get("plocha_m2", 0) for r in rooms if not r.get("venkovni", False))
+    if target_area > 0 and interior_area > 0:
+        score -= abs(interior_area - target_area) / target_area * 30
+    return score
+
+
+def _fallback_plan(area_m2: float) -> dict:
+    """Procedural fallback: a simple 2-room rectangular house sized to `area_m2`.
+
+    Used only if every attempt fails to produce valid JSON. Guarantees the UI
+    always shows SOMETHING and the JSON output is valid Kalkulio format.
+    """
+    side = max(4.0, area_m2 ** 0.5)
+    w, h = side, area_m2 / side
+    return {
+        "steny": [
+            {"id": "W1", "od": [0, 0],   "do": [w, 0],   "tloustka": 0.3, "typ": "obvodova", "od_constraint": None, "do_constraint": None},
+            {"id": "W2", "od": [w, 0],   "do": [w, h],   "tloustka": 0.3, "typ": "obvodova", "od_constraint": None, "do_constraint": None},
+            {"id": "W3", "od": [w, h],   "do": [0, h],   "tloustka": 0.3, "typ": "obvodova", "od_constraint": None, "do_constraint": None},
+            {"id": "W4", "od": [0, h],   "do": [0, 0],   "tloustka": 0.3, "typ": "obvodova", "od_constraint": None, "do_constraint": None},
+            {"id": "W5", "od": [w / 2, 0], "do": [w / 2, h], "tloustka": 0.15, "typ": "pricka", "od_constraint": None, "do_constraint": None},
+        ],
+        "otvory": [
+            {"id": "D1", "stena": "W5", "pozice": h / 2 - 0.45, "sirka": 0.9, "typ": "dvere", "smer_otvirani": "left_in", "pocet_kridel": 1, "typ_dveri": "jednostranne"},
+            {"id": "O1", "stena": "W1", "pozice": w / 4,       "sirka": 1.5, "typ": "okno",  "smer_otvirani": None,     "pocet_kridel": 1, "typ_dveri": None},
+            {"id": "O2", "stena": "W3", "pozice": w * 3 / 4,   "sirka": 1.5, "typ": "okno",  "smer_otvirani": None,     "pocet_kridel": 1, "typ_dveri": None},
+        ],
+        "prostory": [
+            {"id": "P1", "typ": "LivingRoom", "podtyp": None,
+             "polygon": [[0, 0], [w / 2, 0], [w / 2, h], [0, h], [0, 0]],
+             "plocha_m2": round(w / 2 * h, 2), "nazev": "Obývák", "venkovni": False},
+            {"id": "P2", "typ": "Bedroom", "podtyp": None,
+             "polygon": [[w / 2, 0], [w, 0], [w, h], [w / 2, h], [w / 2, 0]],
+             "plocha_m2": round(w / 2 * h, 2), "nazev": "Ložnice", "venkovni": False},
+        ],
+    }
+
+
 def generate_plan(area_m2, max_attempts=3):
     load_model()
-    
+
     best_plan = None
-    best_raw = ""
-    status_msg = ""
-    
+    best_score = float("-inf")
+    best_attempt = 0
+    invalid_count = 0
+
     for attempt in range(1, max_attempts + 1):
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"Generate a floor plan for a house with an approximate area of {area_m2}m2."},
-        ]
-        prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-
-        with torch.no_grad():
-            out = model.generate(
-                **inputs,
-                max_new_tokens=8192,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-                pad_token_id=tokenizer.eos_token_id,
-            )
-
-        raw = tokenizer.decode(out[0][inputs.input_ids.shape[1]:], skip_special_tokens=True)
-        
         try:
-            plan = json.loads(raw)
-        except json.JSONDecodeError:
+            messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": f"Generate a floor plan for a house with an approximate area of {area_m2}m2."},
+            ]
+            prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
+            with torch.no_grad():
+                out = model.generate(
+                    **inputs,
+                    max_new_tokens=8192,
+                    do_sample=True,
+                    temperature=0.7,
+                    top_p=0.9,
+                    pad_token_id=tokenizer.eos_token_id,
+                )
+
+            raw = tokenizer.decode(out[0][inputs.input_ids.shape[1]:], skip_special_tokens=True)
+
+            try:
+                plan = json.loads(raw)
+            except json.JSONDecodeError:
+                invalid_count += 1
+                continue
+
+            try:
+                cleaned = post_process(plan, target_area=area_m2)
+            except Exception as e:
+                print(f"  [attempt {attempt}] post_process crashed: {e}")
+                continue
+
+            score = _score_plan(cleaned, area_m2)
+            if score > best_score:
+                best_plan = cleaned
+                best_score = score
+                best_attempt = attempt
+
+            # Short-circuit if we hit a watertight one (score >= 100 means watertight)
+            if score >= 100:
+                break
+
+        except Exception as e:
+            print(f"  [attempt {attempt}] unexpected error: {e}")
+            invalid_count += 1
             continue
 
-        cleaned = post_process(plan, target_area=area_m2)
-        
-        if has_closed_exterior_loop(cleaned):
-            best_plan = cleaned
-            status_msg = f"✅ Success! Found a watertight floor plan on attempt {attempt}."
-            break
-        else:
-            best_plan = cleaned # keep as fallback
-            status_msg = f"⚠️ Warning: Plan might not be fully enclosed (stopped after {attempt} attempts)."
-
+    # Build status message based on outcome
     if best_plan is None:
-        return "{}", None, "❌ Failed to generate valid JSON."
-        
-    fig = render_floor_plan(best_plan)
+        # Total failure — fall back to procedural plan so the UI never breaks
+        best_plan = _fallback_plan(area_m2)
+        status_msg = (f"❌ Model failed all {max_attempts} attempts ({invalid_count} invalid JSON). "
+                      f"Showing a procedural fallback house. Try a different area.")
+    elif best_score >= 100:
+        status_msg = f"✅ Watertight floor plan generated on attempt {best_attempt}."
+    else:
+        status_msg = (f"⚠️ No fully watertight plan found in {max_attempts} attempts. "
+                      f"Showing best-scoring attempt (score={best_score:.0f}). "
+                      f"The house may have minor gaps.")
+
+    try:
+        fig = render_floor_plan(best_plan)
+    except Exception as e:
+        print(f"render crash: {e}")
+        fig = None
+        status_msg += f"  (render error: {e})"
+
     return json.dumps(best_plan, indent=2, ensure_ascii=False), fig, status_msg
 
 # --- Modification Logic (Bonus) ---
