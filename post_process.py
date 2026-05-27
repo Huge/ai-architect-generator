@@ -126,6 +126,133 @@ def drop_invalid_room_types(plan: dict) -> dict:
     return plan
 
 
+# Czech labels for relabeled rooms.
+_CZ_LABELS = {
+    "LivingRoom": "Obývák",
+    "Bedroom": "Ložnice",
+    "Kitchen": "Kuchyně",
+    "Bath": "Koupelna",
+    "Entry": "Vstup",
+    "Dining": "Jídelna",
+    "Hall": "Hala",
+    "Closet": "Šatna",
+    "Storage": "Sklad",
+    "Office": "Pracovna",
+}
+
+
+def fix_room_labels(plan: dict) -> dict:
+    """Correct obviously-wrong room labels based on area.
+
+    The model sometimes mislabels rooms (e.g. a 67 m² 'Entry'). This applies
+    architectural common sense to relabel rooms whose area doesn't match
+    their type.
+    """
+    for r in plan.get("prostory", []):
+        area = r.get("plocha_m2", 0)
+        typ = r.get("typ", "Undefined")
+
+        new_typ = None
+
+        # Entry/Vestibule/Hall: should be 2-15 m²
+        if typ in ("Entry", "Vestibule", "Hall", "Hallway") and area > 15:
+            new_typ = "LivingRoom" if area > 25 else "Dining"
+
+        # Bath: should be 1.5-12 m²
+        elif typ == "Bath" and area > 15:
+            new_typ = "LivingRoom" if area > 25 else "Bedroom"
+
+        # Closet: should be 1-8 m²
+        elif typ == "Closet" and area > 10:
+            new_typ = "Bedroom" if area > 12 else "Storage"
+
+        # Kitchen: shouldn't be >40 m² in a normal house
+        elif typ == "Kitchen" and area > 40:
+            new_typ = "LivingRoom"
+
+        # Bedroom: shouldn't be >40 m²
+        elif typ == "Bedroom" and area > 45:
+            new_typ = "LivingRoom"
+
+        # Generic "Room"/"Pokoj"/"Undefined": assign based on size
+        elif typ in ("Room", "Pokoj", "Undefined"):
+            if area >= 25:
+                new_typ = "LivingRoom"
+            elif area >= 10:
+                new_typ = "Bedroom"
+            elif area >= 5:
+                new_typ = "Dining"
+            else:
+                new_typ = "Bath"
+
+        if new_typ:
+            r["typ"] = new_typ
+            r["nazev"] = _CZ_LABELS.get(new_typ, new_typ)
+
+    return plan
+
+
+def drop_disconnected_room_islands(plan: dict, eps: float = 0.5) -> dict:
+    """Keep only rooms that belong to the largest connected cluster.
+
+    Two rooms are 'connected' if their bounding boxes overlap or touch within
+    `eps` meters. This drops isolated rooms floating off in their own enclave
+    (e.g. a bedroom 5 m away from the rest of the house).
+    """
+    rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
+    if len(rooms) <= 1:
+        return plan
+
+    def bbox(r):
+        xs = [p[0] for p in r["polygon"]]
+        ys = [p[1] for p in r["polygon"]]
+        return (min(xs), min(ys), max(xs), max(ys))
+
+    def touches(b1, b2):
+        return not (
+            b1[2] + eps < b2[0]
+            or b2[2] + eps < b1[0]
+            or b1[3] + eps < b2[1]
+            or b2[3] + eps < b1[1]
+        )
+
+    boxes = [bbox(r) for r in rooms]
+    n = len(rooms)
+
+    # Union-Find clustering
+    parent = list(range(n))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            if touches(boxes[i], boxes[j]):
+                union(i, j)
+
+    clusters: dict[int, list[int]] = {}
+    for i in range(n):
+        clusters.setdefault(find(i), []).append(i)
+
+    # Largest cluster by total area
+    def cluster_area(indices):
+        return sum(rooms[i].get("plocha_m2", 0) for i in indices)
+
+    largest = max(clusters.values(), key=cluster_area)
+    keep_ids = {rooms[i].get("id") for i in largest}
+
+    plan["prostory"] = [r for r in plan.get("prostory", []) if r.get("id") in keep_ids]
+    return plan
+
+
 def drop_tiny_rooms(plan: dict, min_area: float = 1.0) -> dict:
     """Remove rooms smaller than `min_area` m² (zero / collapsed / garbage rooms).
 
@@ -637,28 +764,30 @@ def post_process(plan: dict, target_area: Optional[float] = None) -> dict:
     Returns:
         The cleaned plan (mutated in place AND returned for convenience).
     """
-    plan = drop_degenerate_walls(plan)        # zero-length walls first
+    plan = drop_degenerate_walls(plan)            # zero-length walls first
     plan = drop_outdoor_rooms(plan)
-    plan = drop_invalid_room_types(plan)      # "Elevator", "Stairs", etc.
+    plan = drop_invalid_room_types(plan)          # "Elevator", "Stairs", etc.
     plan = snap_wall_endpoints(plan)
-    plan = drop_degenerate_walls(plan)        # snapping can collapse walls
-    plan = drop_floating_walls(plan)          # dangling/orphan wall segments
-    plan = drop_extreme_length_walls(plan)    # giant spikes / rays
-    plan = drop_orphan_rooms(plan)            # rooms outside the envelope
-    plan = recompute_areas(plan)              # need fresh areas before tiny/overlap checks
-    plan = drop_tiny_rooms(plan)              # zero / sub-1m² rooms
-    plan = drop_overlapping_rooms(plan)       # keep larger room when 2 overlap heavily
-    plan = drop_walls_outside_room_bbox(plan) # remove long external rays/spikes
-    plan = trim_wall_overhangs(plan)          # trim any remaining spikes to the bounding box
-    plan = orthogonalize_walls(plan)          # eliminate tiny slants that create viewer rays
-    plan = drop_degenerate_walls(plan)        # orthogonalization can collapse tiny segments
-    plan = drop_disconnected_openings(plan)   # also catches refs to dropped walls
-    plan = strip_wall_constraints(plan)        # avoid viewer re-solving stale constraints
+    plan = drop_degenerate_walls(plan)            # snapping can collapse walls
+    plan = drop_floating_walls(plan)              # dangling/orphan wall segments
+    plan = drop_extreme_length_walls(plan)        # giant spikes / rays
+    plan = drop_orphan_rooms(plan)                # rooms outside the envelope
+    plan = recompute_areas(plan)                  # need fresh areas before tiny/overlap checks
+    plan = drop_tiny_rooms(plan)                  # zero / sub-1m² rooms
+    plan = drop_overlapping_rooms(plan)           # keep larger room when 2 overlap heavily
+    plan = drop_disconnected_room_islands(plan)   # drop orphan rooms floating off in their own enclave
+    plan = drop_walls_outside_room_bbox(plan)     # remove long external rays/spikes
+    plan = trim_wall_overhangs(plan)              # trim any remaining spikes to the bounding box
+    plan = orthogonalize_walls(plan)              # eliminate tiny slants that create viewer rays
+    plan = drop_degenerate_walls(plan)            # orthogonalization can collapse tiny segments
+    plan = drop_disconnected_openings(plan)       # also catches refs to dropped walls
+    plan = strip_wall_constraints(plan)           # avoid viewer re-solving stale constraints
     plan = close_polygons(plan)
     plan = recompute_areas(plan)
     if target_area is not None and target_area > 0:
         plan = rescale_to_target_area(plan, target_area)
         plan = recompute_areas(plan)
+    plan = fix_room_labels(plan)                  # relabel rooms whose area doesn't match their type
     return plan
 
 
