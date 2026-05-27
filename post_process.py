@@ -673,6 +673,104 @@ def rescale_to_target_area(plan: dict, target_area: float) -> dict:
 
 # ----- Main orchestrator -------------------------------------------------------
 
+def rebuild_walls_from_rooms(plan: dict, snap_eps: float = 0.1) -> dict:
+    """Replace the model's walls with walls derived from room polygon edges.
+
+    Algorithm:
+      1. For each room edge, split it at any other room's vertex that lies on it
+         (this handles T-junctions where two rooms meet on the same line).
+      2. Snap all endpoints to a grid.
+      3. Count how often each canonical edge appears across all rooms.
+      4. Edges appearing once → exterior wall (obvodova).
+         Edges appearing twice → interior partition (pricka).
+         Edges appearing more (rare) → still interior.
+
+    Guarantees a watertight floor plan when room polygons are valid.
+    """
+    rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
+    if not rooms:
+        return plan
+
+    def snap_pt(p):
+        return (round(p[0] / snap_eps) * snap_eps, round(p[1] / snap_eps) * snap_eps)
+
+    # Collect every vertex from every polygon (we'll use these to split edges at T-junctions)
+    all_vertices: set[tuple] = set()
+    for r in rooms:
+        for p in r["polygon"]:
+            all_vertices.add(snap_pt(p))
+
+    def split_edge_at_collinear_vertices(a, b):
+        """Return list of sub-edges if any vertices lie strictly between a and b."""
+        sa, sb = snap_pt(a), snap_pt(b)
+        if sa == sb:
+            return []
+        ax, ay = sa
+        bx, by = sb
+        dx, dy = bx - ax, by - ay
+        length_sq = dx * dx + dy * dy
+        if length_sq < 1e-6:
+            return []
+        # Find vertices strictly between a and b on this line
+        intermediate = []
+        for v in all_vertices:
+            if v == sa or v == sb:
+                continue
+            vx, vy = v
+            # Cross product near zero = collinear
+            cross = (vx - ax) * dy - (vy - ay) * dx
+            if abs(cross) > snap_eps * 0.5:
+                continue
+            # Parameter t along the line; must be in (0, 1) for the point to be strictly between
+            t = ((vx - ax) * dx + (vy - ay) * dy) / length_sq
+            if 0.0 + 1e-6 < t < 1.0 - 1e-6:
+                intermediate.append((t, v))
+        # Build the sub-edges
+        intermediate.sort()
+        points = [sa] + [v for _, v in intermediate] + [sb]
+        return [(points[i], points[i + 1]) for i in range(len(points) - 1)]
+
+    def canon_edge(a, b):
+        if a == b:
+            return None
+        return (a, b) if a < b else (b, a)
+
+    # Count canonical edges with splitting
+    edge_count: dict[tuple, int] = {}
+    for r in rooms:
+        poly = r["polygon"]
+        n = len(poly)
+        for i in range(n):
+            a, b = poly[i], poly[(i + 1) % n]
+            for sub_a, sub_b in split_edge_at_collinear_vertices(a, b):
+                key = canon_edge(sub_a, sub_b)
+                if key is None:
+                    continue
+                edge_count[key] = edge_count.get(key, 0) + 1
+
+    new_walls = []
+    wall_idx = 1
+    for (a, b), count in edge_count.items():
+        if abs(a[0] - b[0]) < 1e-3 and abs(a[1] - b[1]) < 1e-3:
+            continue
+        is_exterior = count == 1
+        wall = {
+            "id": f"W{wall_idx}",
+            "od": [round(a[0], 2), round(a[1], 2)],
+            "do": [round(b[0], 2), round(b[1], 2)],
+            "tloustka": 0.3 if is_exterior else 0.15,
+            "typ": "obvodova" if is_exterior else "pricka",
+            "od_constraint": None,
+            "do_constraint": None,
+        }
+        new_walls.append(wall)
+        wall_idx += 1
+
+    plan["steny"] = new_walls
+    plan["otvory"] = []  # openings referenced old walls; drop them
+    return plan
+
+
 def has_closed_exterior_loop(plan: dict, eps: float = 0.15) -> bool:
     """
     Validates if the walls in the floor plan form at least one fully closed loop.
@@ -771,30 +869,27 @@ def post_process(plan: dict, target_area: Optional[float] = None) -> dict:
     Returns:
         The cleaned plan (mutated in place AND returned for convenience).
     """
-    plan = drop_degenerate_walls(plan)            # zero-length walls first
+    # === Phase 1: clean up the ROOMS (we'll rebuild walls from them) ===
     plan = drop_outdoor_rooms(plan)
-    plan = drop_invalid_room_types(plan)          # "Elevator", "Stairs", etc.
-    plan = snap_wall_endpoints(plan)
-    plan = drop_degenerate_walls(plan)            # snapping can collapse walls
-    plan = drop_floating_walls(plan)              # dangling/orphan wall segments
-    plan = drop_extreme_length_walls(plan)        # giant spikes / rays
-    plan = drop_orphan_rooms(plan)                # rooms outside the envelope
-    plan = recompute_areas(plan)                  # need fresh areas before tiny/overlap checks
-    plan = drop_tiny_rooms(plan)                  # zero / sub-1m² rooms
-    plan = drop_overlapping_rooms(plan)           # keep larger room when 2 overlap heavily
-    plan = drop_disconnected_room_islands(plan)   # drop orphan rooms floating off in their own enclave
-    plan = drop_walls_outside_room_bbox(plan)     # remove long external rays/spikes
-    plan = trim_wall_overhangs(plan)              # trim any remaining spikes to the bounding box
-    plan = orthogonalize_walls(plan)              # eliminate tiny slants that create viewer rays
-    plan = drop_degenerate_walls(plan)            # orthogonalization can collapse tiny segments
-    plan = drop_disconnected_openings(plan)       # also catches refs to dropped walls
-    plan = strip_wall_constraints(plan)           # avoid viewer re-solving stale constraints
+    plan = drop_invalid_room_types(plan)
+    plan = recompute_areas(plan)
+    plan = drop_tiny_rooms(plan)
+    plan = drop_overlapping_rooms(plan)
+    plan = drop_disconnected_room_islands(plan)
     plan = close_polygons(plan)
     plan = recompute_areas(plan)
+
+    # === Phase 2: rescale to target area BEFORE rebuilding walls ===
     if target_area is not None and target_area > 0:
         plan = rescale_to_target_area(plan, target_area)
         plan = recompute_areas(plan)
-    plan = fix_room_labels(plan)                  # relabel rooms whose area doesn't match their type
+
+    # === Phase 3: rebuild walls deterministically from room polygons ===
+    # This guarantees watertight geometry and drops the model's messy walls entirely.
+    plan = rebuild_walls_from_rooms(plan)
+
+    # === Phase 4: final label cleanup ===
+    plan = fix_room_labels(plan)
     return plan
 
 
