@@ -256,13 +256,15 @@ def _score_plan(plan: dict, target_area: float) -> float:
     return score
 
 
-def _is_excellent(plan: dict, score: float) -> bool:
-    """A plan good enough to stop early: watertight, no slivers, decent score."""
+def _is_good_enough(plan: dict, score: float) -> bool:
+    """Good enough to stop early (keeps generation fast): watertight and not
+    heavily fragmented. We allow up to one small room so we don't burn extra
+    attempts (each ~minutes on 14B) chasing perfection."""
     if not plan or not has_closed_exterior_loop(plan):
         return False
     interior = [r for r in plan.get("prostory", []) if not r.get("venkovni", False)]
     tiny = sum(1 for r in interior if r.get("plocha_m2", 0) < 4.0)
-    return tiny == 0 and score >= 112
+    return tiny <= 1
 
 
 def _fallback_plan(area_m2: float) -> dict:
@@ -297,7 +299,7 @@ def _fallback_plan(area_m2: float) -> dict:
     }
 
 
-def generate_plan(area_m2, max_attempts=4, progress=gr.Progress()):
+def generate_plan(area_m2, max_attempts=2, progress=gr.Progress()):
     load_model()
 
     best_plan = None
@@ -305,7 +307,7 @@ def generate_plan(area_m2, max_attempts=4, progress=gr.Progress()):
     best_attempt = 0
     invalid_count = 0
 
-    temperatures = [0.3, 0.5, 0.6, 0.8]
+    temperatures = [0.3, 0.6]
 
     for attempt in range(1, max_attempts + 1):
         progress((attempt - 1) / max_attempts, desc=f"Attempt {attempt}/{max_attempts}...")
@@ -321,7 +323,7 @@ def generate_plan(area_m2, max_attempts=4, progress=gr.Progress()):
             with torch.no_grad():
                 out = model.generate(
                     **inputs,
-                    max_new_tokens=4096,
+                    max_new_tokens=3072,   # plans <=180 m² fit easily; caps runaways
                     do_sample=True,
                     temperature=temp,
                     top_p=0.9,
@@ -348,9 +350,9 @@ def generate_plan(area_m2, max_attempts=4, progress=gr.Progress()):
                 best_score = score
                 best_attempt = attempt
 
-            # Only stop early for an EXCELLENT plan (watertight + no slivers).
-            # A merely-watertight-but-messy plan keeps trying for something cleaner.
-            if _is_excellent(cleaned, score):
+            # Stop as soon as we have a watertight, non-fragmented plan. With
+            # only 2 attempts and ~minutes each on 14B, we don't chase perfection.
+            if _is_good_enough(cleaned, score):
                 break
 
         except Exception as e:
@@ -432,7 +434,7 @@ with gr.Blocks(title="Kalkulio AI Architect", theme=gr.themes.Default(primary_hu
     gr.Markdown(
         """
         # 🏗️ Kalkulio AI Architect
-        Generate and modify single-family house floor plans using a fine-tuned Qwen2.5-Coder-3B model.
+        Generate and modify single-family house floor plans using a fine-tuned Qwen2.5-Coder-14B model.
         """
     )
     
