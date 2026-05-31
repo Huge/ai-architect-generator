@@ -1,0 +1,81 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading dataset...
+Loading model Qwen/Qwen2.5-Coder-3B-Instruct on GPU...
+⚠️ Flash Attention 2 not available, falling back to SDPA (still fast!).
+Loading weights:   0%|          | 0/434 [00:00<?, ?it/s]Loading weights:   0%|          | 1/434 [00:00<01:30,  4.77it/s]Loading weights:   7%|▋         | 32/434 [00:00<00:03, 128.41it/s]Loading weights:  13%|█▎        | 57/434 [00:00<00:02, 172.71it/s]Loading weights:  19%|█▊        | 81/434 [00:00<00:01, 193.51it/s]Loading weights:  26%|██▌       | 111/434 [00:00<00:01, 219.13it/s]Loading weights:  31%|███▏      | 136/434 [00:00<00:01, 219.73it/s]Loading weights:  37%|███▋      | 161/434 [00:00<00:01, 219.82it/s]Loading weights:  43%|████▎     | 188/434 [00:00<00:01, 234.35it/s]Loading weights:  49%|████▉     | 213/434 [00:01<00:00, 237.02it/s]Loading weights:  55%|█████▌    | 239/434 [00:01<00:00, 243.03it/s]Loading weights:  62%|██████▏   | 267/434 [00:01<00:00, 245.28it/s]Loading weights:  67%|██████▋   | 292/434 [00:01<00:00, 238.22it/s]Loading weights:  73%|███████▎  | 317/434 [00:01<00:00, 232.88it/s]Loading weights:  79%|███████▉  | 345/434 [00:01<00:00, 245.40it/s]Loading weights:  85%|████████▌ | 371/434 [00:01<00:00, 248.66it/s]Loading weights:  91%|█████████▏| 397/434 [00:01<00:00, 251.83it/s]Loading weights:  97%|█████████▋| 423/434 [00:01<00:00, 245.35it/s]Loading weights: 100%|██████████| 434/434 [00:01<00:00, 223.17it/s]
+[transformers] warmup_ratio is deprecated and will be removed in v5.2. Use `warmup_steps` instead.
+[transformers] The tokenizer has new PAD/BOS/EOS tokens that differ from the model config and generation config. The model config and generation config were aligned accordingly, being updated with the tokenizer's values. Updated tokens: {'bos_token_id': None, 'pad_token_id': 151643}.
+Starting training...
+  0%|          | 0/80 [00:00<?, ?it/s]Traceback (most recent call last):
+  File "/home/martin/ai-architect-generator/train.py", line 105, in <module>
+    trainer.train()
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/trainer.py", line 1427, in train
+    return inner_training_loop(
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/trainer.py", line 1509, in _inner_training_loop
+    self._run_epoch(
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/trainer.py", line 1737, in _run_epoch
+    tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/trl/trainer/sft_trainer.py", line 1728, in training_step
+    return super().training_step(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/trainer.py", line 1909, in training_step
+    loss = self.compute_loss(model, inputs, num_items_in_batch=num_items_in_batch)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/trl/trainer/sft_trainer.py", line 1603, in compute_loss
+    (loss, outputs) = super().compute_loss(
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/trainer.py", line 1981, in compute_loss
+    outputs = model(**inputs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/accelerate/utils/operations.py", line 823, in forward
+    return model_forward(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/accelerate/utils/operations.py", line 811, in __call__
+    return convert_to_fp32(self.model_forward(*args, **kwargs))
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/amp/autocast_mode.py", line 44, in decorate_autocast
+    return func(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/peft/peft_model.py", line 1993, in forward
+    return self.base_model(
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/peft/tuners/tuners_utils.py", line 330, in forward
+    return self.model.forward(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/utils/generic.py", line 903, in wrapper
+    output = func(self, *args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 462, in forward
+    outputs: BaseModelOutputWithPast = self.model(
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/utils/generic.py", line 1032, in wrapper
+    output = func(self, *args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/utils/output_capturing.py", line 252, in wrapper
+    outputs = func(self, *args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 399, in forward
+    hidden_states = decoder_layer(
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/modeling_layers.py", line 93, in __call__
+    return super().__call__(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 307, in forward
+    hidden_states = self.mlp(hidden_states)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 47, in forward
+    down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/peft/tuners/lora/layer.py", line 967, in forward
+    x = self._cast_input_dtype(x, lora_A.weight.dtype)
+  File "/home/martin/ai-architect-generator/venv/lib/python3.10/site-packages/peft/tuners/tuners_utils.py", line 1702, in _cast_input_dtype
+    return x.to(dtype=dtype)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.91 GiB. GPU 0 has a total capacity of 94.97 GiB of which 2.47 GiB is free. Including non-PyTorch memory, this process has 92.50 GiB memory in use. Of the allocated memory 89.76 GiB is allocated by PyTorch, and 2.07 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+  0%|          | 0/80 [00:01<?, ?it/s]
