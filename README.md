@@ -1,43 +1,189 @@
-### Kalkulio AI Architect Generator
-An AI-powered pipeline designed to generate valid, topologically correct JSON floor plans for the Kalkulio AI Challenge.
+# Kalkulio AI Architect Generator
 
-This project leverages Apple Silicon's native MLX framework to fine-tune an LLM (Qwen2.5-Coder) using LoRA, transforming raw conversational prompts into highly structured, geometrically strict JSON architectural representations.
+An AI system that generates valid, geometrically-correct JSON floor plans for
+single-family houses from a simple text prompt (target area in m²), built for
+the **Kalkulio AI Challenge**.
 
-This project leverages the **HuggingFace & PyTorch ecosystem (CUDA)** to fine-tune an LLM (Qwen2.5-Coder) using LoRA, transforming raw conversational prompts into highly structured, geometrically strict JSON architectural representations. It is perfectly optimized for an **NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition**.
+The system pairs a **fine-tuned LLM** (Qwen2.5-Coder + LoRA) with a
+**deterministic geometric post-processor** that guarantees every output is
+watertight, correctly scaled, and architecturally sensible — then serves it
+through an interactive **Gradio UI** with floor-plan visualization.
 
-The pipeline consists of three main phases:
+---
 
-Data Augmentation: A Python script ingests raw JSON samples and applies geometric scaling and mirroring to synthetically expand the dataset.
+## Why this architecture
 
-The pipeline consists of three main phases:
-1. **Data Augmentation:** A Python script ingests 70 initial parsed JSON samples from Kalkulio and applies geometric scaling (and other augmentations) to synthetically expand the dataset.
-2. **LoRA Fine-Tuning:** The augmented dataset is formatted into conversational `.jsonl` pairs and used to fine-tune `Qwen2.5-Coder-3B-Instruct` on NVIDIA GPUs via `transformers`, `peft`, and `trl`.
-3. **Geometric Post-Processing (Coming Soon):** A deterministic Python algorithm to "snap" AI-hallucinated coordinates to a grid, ensuring closed polygons and perfectly connected walls.
+A language model alone will produce *plausible-looking* floor plans, but with
+geometric flaws: floating walls, non-orthogonal lines, overlapping rooms,
+mislabeled spaces, and gaps that break watertightness. Rather than hoping a
+bigger model fixes this, we **split responsibilities**:
 
-## 🚀 Quick Start (NVIDIA GPUs / CUDA)
+| Layer | Responsibility |
+|-------|----------------|
+| **LLM** | Propose rooms — sensible layout, types, and approximate sizes |
+| **Post-processor** | Enforce hard geometric guarantees deterministically |
+| **Best-of-N sampler** | Generate several candidates, keep the best |
+| **Procedural fallback** | Guarantee the UI always returns a valid plan |
 
-This project requires Python 3.10+ and a CUDA-capable NVIDIA GPU (e.g., RTX 6000 series).
+This makes the output **robust by construction** rather than probabilistically.
 
-### Bash
+---
+
+## Pipeline
+
+```
+prompt ("90 m² house")
+      │
+      ▼
+┌─────────────────┐   raw JSON    ┌──────────────────────┐  clean JSON  ┌──────────────┐
+│ Qwen2.5-Coder   │ ────────────▶ │  post_process.py      │ ───────────▶ │  Gradio UI   │
+│ 14B + LoRA      │  (best-of-N)  │  (geometric cleanup)  │              │  + renderer  │
+└─────────────────┘               └──────────────────────┘              └──────────────┘
+```
+
+### 1. Data preparation (`prepare_data.py`)
+- Ingests **60 real Kalkulio houses** + **synthetic plans** (see Data Generation)
+- Geometric augmentation: 4 rotations × 3 mirrors × 3 scales = **36 variants/house**
+- 8 prompt variants (English + Czech, formal + casual)
+- Area-balanced oversampling (large houses weighted up to fight regression-to-mean)
+- Holds out whole houses for validation (no augmented-twin leakage)
+
+### 2. Fine-tuning (`train.py`)
+- Base model: **Qwen2.5-Coder-14B-Instruct**
+- **LoRA** (r=128, α=256) on all attention + MLP projections
+- bf16, gradient checkpointing, TF32, fused AdamW
+- **Multi-GPU data-parallel (DDP)** via `torchrun` — auto-detects `WORLD_SIZE`
+  and auto-scales gradient accumulation to keep a stable effective batch size
+- **Auto-resume** from the last checkpoint after any interruption
+
+### 3. Geometric post-processing (`post_process.py`)
+The core differentiator. A deterministic pipeline:
+
+1. **Clean rooms** — drop outdoor/invalid types, tiny rooms, overlaps
+2. **Snap rooms together** — pull near-touching rooms to shared vertices
+3. **Drop disconnected islands** — keep only the connected house cluster
+4. **Rescale** to the exact target area
+5. **Rebuild walls from room polygons** — walls are *derived* from room edges,
+   which **guarantees watertight geometry** and discards the model's messy walls
+6. **Fix labels** — enforce realistic room types (one LivingRoom/Kitchen/etc.),
+   guarantee every room has a valid type + Czech name
+
+### 4. Serving (`app.py`)
+- **Gradio UI** with a generation tab (area slider → floor plan)
+- **Best-of-N sampling** (staggered temperatures) scored on watertightness,
+  room count, and area accuracy
+- **Procedural fallback** so the UI never shows a broken result
+- Matplotlib renderer: walls over rooms, door arcs, windows, Czech labels
+
+---
+
+## Data generation
+
+To enrich the original 60-house dataset, two complementary generators were built:
+
+### `generate_synthetic_data.py` — LLM-generated plans
+- Calls **Gemini** (3.5-flash → 3.1-pro → … fallback chain across models so a
+  single model's daily quota doesn't block the run)
+- Asks only for **rooms**; walls are derived by `post_process`
+- Validates every plan (watertight + area match) before saving
+
+### `generate_handcrafted_data.py` — template-based plans
+- **70 hand-designed plans** across 5 size buckets (60–200 m²) and many styles
+  (narrow, L-shape, U-shape, ranch, open-plan, etc.)
+- Mathematically perfect tiling — watertight by construction
+- Zero API dependency, fully deterministic
+
+---
+
+## Quick start
+
+Requires Python 3.10+ and a CUDA-capable NVIDIA GPU.
+
+```bash
 git clone https://github.com/naitik0009/ai-architect-generator.git
 cd ai-architect-generator
 python3 -m venv kalkulio-env
 source kalkulio-env/bin/activate
-
-# Install dependencies (PyTorch, Transformers, TRL, etc.)
 pip install -r requirements.txt
 ```
 
-### 2. Prepare the Data
-Run the data preparation script to augment and format the Kalkulio JSON data into conversational `.jsonl` formats:
+### Prepare data
 ```bash
-python prepare_data.py
+python prepare_data.py          # builds data/train.jsonl + data/valid.jsonl
 ```
-This will create `data/train.jsonl` and `data/valid.jsonl`.
 
-### 3. Start Training
-Launch the training script. The script is configured to use `bfloat16` and Flash Attention 2 (if available) for maximum efficiency on Blackwell GPUs:
+### Train
+
+Single GPU:
 ```bash
-python train.py
+CUDA_VISIBLE_DEVICES=0 python train.py
 ```
-The final model adapter will be saved in `./qwen-kalkulio-lora/final`.
+
+Multi-GPU (data-parallel, e.g. 3 GPUs):
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2 torchrun --nproc_per_node=3 train.py
+```
+
+The adapter is saved to `./qwen-kalkulio-lora-14b-v4/final`. Training
+checkpoints every 100 steps and auto-resumes if restarted.
+
+### Generate / clean a single plan
+```bash
+python quick_test.py                                  # generate sample plans
+python post_process.py raw.json -o clean.json --target-area 90 --pretty
+python evaluate.py                                    # before/after quality metrics
+```
+
+### Run the app
+```bash
+python app.py        # launches the Gradio UI
+```
+
+---
+
+## Repository layout
+
+| File | Purpose |
+|------|---------|
+| `prepare_data.py` | Dataset augmentation + conversational formatting |
+| `train.py` | LoRA fine-tuning (single- or multi-GPU, auto-resume) |
+| `post_process.py` | Deterministic geometric cleanup + CLI |
+| `app.py` | Gradio UI: generation, best-of-N, rendering |
+| `quick_test.py` | Inference sanity check (raw + cleaned output) |
+| `evaluate.py` | Quantitative quality metrics |
+| `generate_synthetic_data.py` | Gemini-based synthetic plan generator |
+| `generate_handcrafted_data.py` | Template-based plan generator |
+| `preview_synthetic.py` | Quick visual preview of a plan |
+| `kalkulio_all.json` | 60 source Kalkulio houses |
+| `raw_data/` | Source + synthetic training plans |
+
+---
+
+## Model & results
+
+- **Base:** Qwen2.5-Coder-14B-Instruct
+- **Method:** LoRA (r=128, α=256), 3 epochs
+- **Hardware:** NVIDIA RTX PRO 6000 Blackwell (multi-GPU DDP)
+- **Training set:** 60 real + synthetic/handcrafted plans, ×36 augmentation
+
+<!-- TODO: fill in after evaluate.py on the final v4 model -->
+| Metric | Before post-process | After post-process |
+|--------|---------------------|--------------------|
+| Watertight rate | _TBD_ | _TBD_ |
+| Mean area error | _TBD_ | _TBD_ |
+| Orphan rooms | _TBD_ | _TBD_ |
+
+---
+
+## Deployment (Hugging Face Spaces)
+
+<!-- TODO: finalize after validating the model. Outline: -->
+- Push the LoRA adapter to the HF Hub
+- Gradio SDK Space loading base model + adapter
+- `app.py` works as the Space entrypoint with minimal changes
+
+---
+
+## License
+
+Built for the Kalkulio AI Challenge.

@@ -28,18 +28,17 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 # ----- Tunables ---------------------------------------------------------------
 
 VALIDATION_HOUSES = 7            # Hold out N whole houses for validation
-SCALES = [0.90, 1.00, 1.10]      # 3 scale variants
-MIRRORS = [None, "x", "y"]       # 3 mirror modes
+SCALES = [1.00]                  # 1 scale (rescaling is handled at inference anyway)
+MIRRORS = [None, "x"]            # 2 mirror modes
 ROTATIONS = [0, 90, 180, 270]    # 4 rotations
-# → 3 × 3 × 4 = 36 variants per house
+# → 1 × 2 × 4 = 8 variants per house. With ~100+ base plans + oversampling this
+# yields a few-thousand examples — plenty for LoRA without 14h training runs.
 
 # Area-based oversampling weights — fight the regression-to-mean bias
 def area_weight(area_m2: float) -> int:
     if area_m2 >= 150:
-        return 4
-    if area_m2 >= 120:
         return 3
-    if area_m2 >= 100:
+    if area_m2 >= 120:
         return 2
     return 1
 
