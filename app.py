@@ -385,13 +385,19 @@ def generate_plan(area_m2, max_attempts=2, progress=gr.Progress()):
 
 # --- Modification Logic (Bonus) ---
 def modify_plan(plan_json_str, instruction):
+    # Guard: empty input box (Gradio passes None/"") — don't crash on json.loads(None)
+    if not plan_json_str or not str(plan_json_str).strip():
+        return plan_json_str, None, "❌ Paste a floor plan JSON first — generate one in the 'Generate New Plan' tab, then copy it here."
+    if not instruction or not str(instruction).strip():
+        return plan_json_str, None, "❌ Enter a modification instruction (e.g. 'add a bedroom')."
+
     load_model()
-    
+
     try:
         # Validate input JSON
         json.loads(plan_json_str)
-    except json.JSONDecodeError:
-        return plan_json_str, None, "❌ Invalid input JSON."
+    except (json.JSONDecodeError, TypeError):
+        return plan_json_str, None, "❌ Invalid input JSON — paste a complete floor plan from the first tab."
 
     messages = [
         {"role": "system", "content": "You are an expert architectural AI. You modify JSON floor plans based on user instructions. Output ONLY the modified JSON."},
@@ -443,7 +449,7 @@ with gr.Blocks(title="Kalkulio AI Architect", theme=gr.themes.Default(primary_hu
         with gr.TabItem("✨ Generate New Plan"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    area_slider = gr.Slider(minimum=60, maximum=180, value=90, step=5, label="Target Area (m²)")
+                    area_slider = gr.Slider(minimum=60, maximum=130, value=90, step=5, label="Target Area (m²)")
                     generate_btn = gr.Button("Generate Floor Plan", variant="primary")
                     gen_status = gr.Textbox(label="Status", interactive=False)
                     
