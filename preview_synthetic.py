@@ -60,12 +60,10 @@ def preview(path: str, save: str = None) -> None:
                 bbox=dict(facecolor="white", alpha=0.85, edgecolor="#cccccc",
                           boxstyle="round,pad=0.3"), zorder=10)
 
-    meta = plan.get("metadata", {})
-    target = meta.get("target_area_m2", "?")
-    style = meta.get("style", "?")
     total = sum(r.get("plocha_m2", 0) for r in rooms)
-    ax.set_title(f"{path}  •  target={target}m²  actual={total:.1f}m²  •  {style}",
-                 fontsize=10, color="#555")
+    n_rooms = len([r for r in rooms if r.get("polygon")])
+    ax.set_title(f"{total:.0f} m²  •  {n_rooms} rooms",
+                 fontsize=13, color="#2c3e50")
     ax.set_aspect("equal")
     ax.autoscale_view()
     ax.margins(0.05)
