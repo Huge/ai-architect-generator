@@ -162,16 +162,28 @@ python app.py        # launches the Gradio UI
 ## Model & results
 
 - **Base:** Qwen2.5-Coder-14B-Instruct
-- **Method:** LoRA (r=128, α=256), 3 epochs
-- **Hardware:** NVIDIA RTX PRO 6000 Blackwell (multi-GPU DDP)
-- **Training set:** 60 real + synthetic/handcrafted plans, ×36 augmentation
+- **Method:** LoRA (r=128, α=256), 2 epochs
+- **Hardware:** 3× NVIDIA RTX PRO 6000 Blackwell (data-parallel DDP, ~1.5 h)
+- **Training set:** 60 real Kalkulio houses + Gemini-synthetic + 70 handcrafted
+  plans, ×8 geometric augmentation (rotation × mirror)
 
-<!-- TODO: fill in after evaluate.py on the final v4 model -->
-| Metric | Before post-process | After post-process |
-|--------|---------------------|--------------------|
-| Watertight rate | _TBD_ | _TBD_ |
-| Mean area error | _TBD_ | _TBD_ |
-| Orphan rooms | _TBD_ | _TBD_ |
+Measured on **12 generated plans spanning 70–190 m²** (`evaluate.py`):
+
+| Metric | Raw model | After post-process |
+|--------|-----------|--------------------|
+| Valid JSON | 100% | 100% |
+| **Watertight rate** | 83% | **100%** |
+| **Mean area error** | 27.7% | **0.0%** |
+| Orphan rooms | 1.2% | **0%** |
+| Polygon closure | 91% | **100%** |
+| Wall connectivity | 99% | **100%** |
+| Avg rooms / plan | 10.6 | 9.9 |
+
+The fine-tuned model already produces valid, mostly-watertight JSON; the
+deterministic post-processor closes the remaining gaps — **every** output ends
+up watertight, exactly area-matched, and free of orphan rooms. This split
+(LLM for layout, deterministic geometry for guarantees) is the core of the
+design.
 
 ---
 
