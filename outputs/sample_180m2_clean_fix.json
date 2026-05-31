@@ -1,0 +1,1133 @@
+{
+  "steny": [
+    {
+      "id": "W1",
+      "od": [
+        -9.3,
+        1.7
+      ],
+      "do": [
+        -6.8,
+        1.7
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W2",
+      "od": [
+        -6.8,
+        1.7
+      ],
+      "do": [
+        -3.4,
+        1.7
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W3",
+      "od": [
+        -3.4,
+        1.7
+      ],
+      "do": [
+        0.0,
+        1.7
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W4",
+      "od": [
+        0.0,
+        1.7
+      ],
+      "do": [
+        0.0,
+        6.0
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W5",
+      "od": [
+        0.0,
+        6.0
+      ],
+      "do": [
+        0.0,
+        6.8
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W6",
+      "od": [
+        -9.3,
+        6.8
+      ],
+      "do": [
+        0.0,
+        6.8
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W7",
+      "od": [
+        -9.3,
+        6.0
+      ],
+      "do": [
+        -9.3,
+        6.8
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W8",
+      "od": [
+        -9.3,
+        3.4
+      ],
+      "do": [
+        -9.3,
+        6.0
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W9",
+      "od": [
+        -9.3,
+        1.7
+      ],
+      "do": [
+        -9.3,
+        3.4
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W10",
+      "od": [
+        -15.2,
+        3.4
+      ],
+      "do": [
+        -12.7,
+        3.4
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W11",
+      "od": [
+        -12.7,
+        3.4
+      ],
+      "do": [
+        -9.3,
+        3.4
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W12",
+      "od": [
+        -12.7,
+        6.8
+      ],
+      "do": [
+        -9.3,
+        6.8
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W13",
+      "od": [
+        -15.2,
+        6.8
+      ],
+      "do": [
+        -12.7,
+        6.8
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W14",
+      "od": [
+        -15.2,
+        3.4
+      ],
+      "do": [
+        -15.2,
+        6.8
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W15",
+      "od": [
+        -9.3,
+        6.8
+      ],
+      "do": [
+        -9.3,
+        7.2
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W16",
+      "od": [
+        -9.3,
+        7.2
+      ],
+      "do": [
+        -9.3,
+        10.5
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W17",
+      "od": [
+        -12.7,
+        10.5
+      ],
+      "do": [
+        -9.3,
+        10.5
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W18",
+      "od": [
+        -12.7,
+        6.8
+      ],
+      "do": [
+        -12.7,
+        10.5
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W19",
+      "od": [
+        -12.7,
+        0.0
+      ],
+      "do": [
+        -9.3,
+        0.0
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W20",
+      "od": [
+        -9.3,
+        0.0
+      ],
+      "do": [
+        -9.3,
+        1.7
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W21",
+      "od": [
+        -12.7,
+        0.0
+      ],
+      "do": [
+        -12.7,
+        3.4
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W22",
+      "od": [
+        -3.4,
+        7.2
+      ],
+      "do": [
+        0.0,
+        7.2
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W23",
+      "od": [
+        0.0,
+        7.2
+      ],
+      "do": [
+        0.0,
+        10.5
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W24",
+      "od": [
+        -3.4,
+        10.5
+      ],
+      "do": [
+        0.0,
+        10.5
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W25",
+      "od": [
+        -3.4,
+        7.2
+      ],
+      "do": [
+        -3.4,
+        10.5
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W26",
+      "od": [
+        -7.6,
+        7.2
+      ],
+      "do": [
+        -6.8,
+        7.2
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W27",
+      "od": [
+        -6.8,
+        7.2
+      ],
+      "do": [
+        -3.4,
+        7.2
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W28",
+      "od": [
+        -6.8,
+        10.5
+      ],
+      "do": [
+        -3.4,
+        10.5
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W29",
+      "od": [
+        -7.6,
+        10.5
+      ],
+      "do": [
+        -6.8,
+        10.5
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W30",
+      "od": [
+        -7.6,
+        7.2
+      ],
+      "do": [
+        -7.6,
+        10.5
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W31",
+      "od": [
+        -9.3,
+        6.0
+      ],
+      "do": [
+        0.0,
+        6.0
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W32",
+      "od": [
+        0.0,
+        6.8
+      ],
+      "do": [
+        0.0,
+        7.2
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W33",
+      "od": [
+        -9.3,
+        7.2
+      ],
+      "do": [
+        -7.6,
+        7.2
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W34",
+      "od": [
+        -15.2,
+        10.5
+      ],
+      "do": [
+        -12.7,
+        10.5
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W35",
+      "od": [
+        -15.2,
+        6.8
+      ],
+      "do": [
+        -15.2,
+        10.5
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W36",
+      "od": [
+        0.0,
+        10.5
+      ],
+      "do": [
+        0.0,
+        11.8
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W37",
+      "od": [
+        -7.6,
+        11.8
+      ],
+      "do": [
+        0.0,
+        11.8
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W38",
+      "od": [
+        -7.6,
+        10.5
+      ],
+      "do": [
+        -7.6,
+        11.8
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W39",
+      "od": [
+        -6.8,
+        7.2
+      ],
+      "do": [
+        -6.8,
+        10.5
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W40",
+      "od": [
+        -9.3,
+        10.5
+      ],
+      "do": [
+        -7.6,
+        10.5
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W41",
+      "od": [
+        -15.2,
+        0.0
+      ],
+      "do": [
+        -12.7,
+        0.0
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W42",
+      "od": [
+        -15.2,
+        0.0
+      ],
+      "do": [
+        -15.2,
+        3.4
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W43",
+      "od": [
+        -3.4,
+        0.0
+      ],
+      "do": [
+        0.0,
+        0.0
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W44",
+      "od": [
+        0.0,
+        0.0
+      ],
+      "do": [
+        0.0,
+        1.7
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W45",
+      "od": [
+        -3.4,
+        0.0
+      ],
+      "do": [
+        -3.4,
+        1.7
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W46",
+      "od": [
+        -6.8,
+        0.0
+      ],
+      "do": [
+        -3.4,
+        0.0
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W47",
+      "od": [
+        -6.8,
+        0.0
+      ],
+      "do": [
+        -6.8,
+        1.7
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W48",
+      "od": [
+        -9.3,
+        0.0
+      ],
+      "do": [
+        -6.8,
+        0.0
+      ],
+      "tloustka": 0.3,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    }
+  ],
+  "otvory": [],
+  "prostory": [
+    {
+      "id": "P6",
+      "typ": "LivingRoom",
+      "nazev": "Obývák",
+      "polygon": [
+        [
+          -9.33,
+          1.69
+        ],
+        [
+          0.0,
+          1.69
+        ],
+        [
+          0.0,
+          6.75
+        ],
+        [
+          -9.33,
+          6.75
+        ],
+        [
+          -9.33,
+          1.69
+        ]
+      ],
+      "plocha_m2": 47.21,
+      "venkovni": false
+    },
+    {
+      "id": "P7",
+      "typ": "Dining",
+      "nazev": "Jídelna",
+      "polygon": [
+        [
+          -15.18,
+          3.37
+        ],
+        [
+          -9.33,
+          3.37
+        ],
+        [
+          -9.33,
+          6.75
+        ],
+        [
+          -15.18,
+          6.75
+        ],
+        [
+          -15.18,
+          3.37
+        ]
+      ],
+      "plocha_m2": 19.77,
+      "venkovni": false
+    },
+    {
+      "id": "P12",
+      "typ": "Bedroom",
+      "nazev": "Ložnice",
+      "polygon": [
+        [
+          -12.7,
+          6.75
+        ],
+        [
+          -9.33,
+          6.75
+        ],
+        [
+          -9.33,
+          10.52
+        ],
+        [
+          -12.7,
+          10.52
+        ],
+        [
+          -12.7,
+          6.75
+        ]
+      ],
+      "plocha_m2": 12.7,
+      "venkovni": false
+    },
+    {
+      "id": "P4",
+      "typ": "Kitchen",
+      "nazev": "Kuchyně",
+      "polygon": [
+        [
+          -12.7,
+          0.0
+        ],
+        [
+          -9.33,
+          0.0
+        ],
+        [
+          -9.33,
+          3.37
+        ],
+        [
+          -12.7,
+          3.37
+        ],
+        [
+          -12.7,
+          0.0
+        ]
+      ],
+      "plocha_m2": 11.36,
+      "venkovni": false
+    },
+    {
+      "id": "P9",
+      "typ": "Bedroom",
+      "nazev": "Ložnice",
+      "polygon": [
+        [
+          -3.37,
+          7.15
+        ],
+        [
+          0.0,
+          7.15
+        ],
+        [
+          0.0,
+          10.52
+        ],
+        [
+          -3.37,
+          10.52
+        ],
+        [
+          -3.37,
+          7.15
+        ]
+      ],
+      "plocha_m2": 11.36,
+      "venkovni": false
+    },
+    {
+      "id": "P10",
+      "typ": "Bedroom",
+      "nazev": "Ložnice",
+      "polygon": [
+        [
+          -7.64,
+          7.15
+        ],
+        [
+          -3.37,
+          7.15
+        ],
+        [
+          -3.37,
+          10.52
+        ],
+        [
+          -7.64,
+          10.52
+        ],
+        [
+          -7.64,
+          7.15
+        ]
+      ],
+      "plocha_m2": 14.39,
+      "venkovni": false
+    },
+    {
+      "id": "P8",
+      "typ": "Hallway",
+      "nazev": "Chodba",
+      "polygon": [
+        [
+          -9.33,
+          5.95
+        ],
+        [
+          0.0,
+          5.95
+        ],
+        [
+          0.0,
+          7.15
+        ],
+        [
+          -9.33,
+          7.15
+        ],
+        [
+          -9.33,
+          5.95
+        ]
+      ],
+      "plocha_m2": 11.2,
+      "venkovni": false
+    },
+    {
+      "id": "P13",
+      "typ": "Bedroom",
+      "nazev": "Ložnice",
+      "polygon": [
+        [
+          -15.18,
+          6.75
+        ],
+        [
+          -12.7,
+          6.75
+        ],
+        [
+          -12.7,
+          10.52
+        ],
+        [
+          -15.18,
+          10.52
+        ],
+        [
+          -15.18,
+          6.75
+        ]
+      ],
+      "plocha_m2": 9.35,
+      "venkovni": false
+    },
+    {
+      "id": "P14",
+      "typ": "Closet",
+      "nazev": "Šatna",
+      "polygon": [
+        [
+          -7.64,
+          10.52
+        ],
+        [
+          0.0,
+          10.52
+        ],
+        [
+          0.0,
+          11.81
+        ],
+        [
+          -7.64,
+          11.81
+        ],
+        [
+          -7.64,
+          10.52
+        ]
+      ],
+      "plocha_m2": 9.86,
+      "venkovni": false
+    },
+    {
+      "id": "P11",
+      "typ": "Bedroom",
+      "nazev": "Ložnice",
+      "polygon": [
+        [
+          -9.33,
+          7.15
+        ],
+        [
+          -6.75,
+          7.15
+        ],
+        [
+          -6.75,
+          10.52
+        ],
+        [
+          -9.33,
+          10.52
+        ],
+        [
+          -9.33,
+          7.15
+        ]
+      ],
+      "plocha_m2": 8.69,
+      "venkovni": false
+    },
+    {
+      "id": "P5",
+      "typ": "Pantry",
+      "nazev": "Spíž",
+      "polygon": [
+        [
+          -15.18,
+          0.0
+        ],
+        [
+          -12.7,
+          0.0
+        ],
+        [
+          -12.7,
+          3.37
+        ],
+        [
+          -15.18,
+          3.37
+        ],
+        [
+          -15.18,
+          0.0
+        ]
+      ],
+      "plocha_m2": 8.36,
+      "venkovni": false
+    },
+    {
+      "id": "P1",
+      "typ": "Entry",
+      "nazev": "Vstup",
+      "polygon": [
+        [
+          -3.37,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.69
+        ],
+        [
+          -3.37,
+          1.69
+        ],
+        [
+          -3.37,
+          0.0
+        ]
+      ],
+      "plocha_m2": 5.7,
+      "venkovni": false
+    },
+    {
+      "id": "P2",
+      "typ": "Bath",
+      "nazev": "Koupelna",
+      "polygon": [
+        [
+          -6.75,
+          0.0
+        ],
+        [
+          -3.37,
+          0.0
+        ],
+        [
+          -3.37,
+          1.69
+        ],
+        [
+          -6.75,
+          1.69
+        ],
+        [
+          -6.75,
+          0.0
+        ]
+      ],
+      "plocha_m2": 5.71,
+      "venkovni": false
+    },
+    {
+      "id": "P3",
+      "typ": "Bath",
+      "nazev": "Koupelna",
+      "polygon": [
+        [
+          -9.33,
+          0.0
+        ],
+        [
+          -6.75,
+          0.0
+        ],
+        [
+          -6.75,
+          1.69
+        ],
+        [
+          -9.33,
+          1.69
+        ],
+        [
+          -9.33,
+          0.0
+        ]
+      ],
+      "plocha_m2": 4.36,
+      "venkovni": false
+    }
+  ]
+}
