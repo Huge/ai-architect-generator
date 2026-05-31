@@ -208,20 +208,61 @@ def render_floor_plan(plan):
 # --- Generation Logic ---
 
 def _score_plan(plan: dict, target_area: float) -> float:
-    """Score a cleaned plan. Higher is better. Used to pick the best attempt."""
+    """Score a cleaned plan. Higher is better. Used to pick the best attempt.
+
+    Rewards watertight geometry and area accuracy; penalizes the things that
+    make a plan look bad to a human: tiny slivers, one room hogging the house,
+    and over-fragmentation.
+    """
     if not plan:
         return -1e9
     score = 0.0
     rooms = plan.get("prostory") or []
-    walls = plan.get("steny") or []
+    interior = [r for r in rooms if not r.get("venkovni", False)]
+
     if has_closed_exterior_loop(plan):
         score += 100
-    score += min(len(rooms), 10) * 3
-    score += min(len(walls), 20) * 0.5
-    interior_area = sum(r.get("plocha_m2", 0) for r in rooms if not r.get("venkovni", False))
+
+    # Reward a sensible room count (diminishing past ~8)
+    score += min(len(interior), 8) * 2
+
+    interior_area = sum(r.get("plocha_m2", 0) for r in interior)
     if target_area > 0 and interior_area > 0:
         score -= abs(interior_area - target_area) / target_area * 30
+
+    # Penalty: tiny rooms (< 4 m²) — slivers / unrealistic spaces
+    tiny = sum(1 for r in interior if r.get("plocha_m2", 0) < 4.0)
+    score -= tiny * 8
+
+    # Penalty: one room hogging the house, by fraction (small plans)...
+    if interior and interior_area > 0:
+        largest_frac = max(r.get("plocha_m2", 0) for r in interior) / interior_area
+        if largest_frac > 0.45:
+            score -= (largest_frac - 0.45) * 100
+
+    # ...and by absolute size (large plans) — e.g. a 62 m² living room is
+    # unrealistic for a single-family house regardless of the total.
+    for r in interior:
+        a = r.get("plocha_m2", 0)
+        if a > 45:
+            score -= (a - 45) * 1.5
+
+    # Penalty: over-fragmentation (too many rooms for the area)
+    if target_area > 0:
+        expected_max_rooms = target_area / 10.0 + 3
+        if len(interior) > expected_max_rooms:
+            score -= (len(interior) - expected_max_rooms) * 4
+
     return score
+
+
+def _is_excellent(plan: dict, score: float) -> bool:
+    """A plan good enough to stop early: watertight, no slivers, decent score."""
+    if not plan or not has_closed_exterior_loop(plan):
+        return False
+    interior = [r for r in plan.get("prostory", []) if not r.get("venkovni", False)]
+    tiny = sum(1 for r in interior if r.get("plocha_m2", 0) < 4.0)
+    return tiny == 0 and score >= 112
 
 
 def _fallback_plan(area_m2: float) -> dict:
@@ -307,8 +348,9 @@ def generate_plan(area_m2, max_attempts=4, progress=gr.Progress()):
                 best_score = score
                 best_attempt = attempt
 
-            # Short-circuit if we hit a watertight one (score >= 100 means watertight)
-            if score >= 100:
+            # Only stop early for an EXCELLENT plan (watertight + no slivers).
+            # A merely-watertight-but-messy plan keeps trying for something cleaner.
+            if _is_excellent(cleaned, score):
                 break
 
         except Exception as e:
@@ -322,8 +364,9 @@ def generate_plan(area_m2, max_attempts=4, progress=gr.Progress()):
         best_plan = _fallback_plan(area_m2)
         status_msg = (f"❌ Model failed all {max_attempts} attempts ({invalid_count} invalid JSON). "
                       f"Showing a procedural fallback house. Try a different area.")
-    elif best_score >= 100:
-        status_msg = f"✅ Watertight floor plan generated on attempt {best_attempt}."
+    elif has_closed_exterior_loop(best_plan):
+        status_msg = (f"✅ Watertight floor plan selected (best of {best_attempt} "
+                      f"attempt{'s' if best_attempt > 1 else ''}, score {best_score:.0f}).")
     else:
         status_msg = (f"⚠️ No fully watertight plan found in {max_attempts} attempts. "
                       f"Showing best-scoring attempt (score={best_score:.0f}). "
@@ -398,7 +441,7 @@ with gr.Blocks(title="Kalkulio AI Architect", theme=gr.themes.Default(primary_hu
         with gr.TabItem("✨ Generate New Plan"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    area_slider = gr.Slider(minimum=60, maximum=200, value=120, step=5, label="Target Area (m²)")
+                    area_slider = gr.Slider(minimum=60, maximum=180, value=90, step=5, label="Target Area (m²)")
                     generate_btn = gr.Button("Generate Floor Plan", variant="primary")
                     gen_status = gr.Textbox(label="Status", interactive=False)
                     

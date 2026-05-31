@@ -812,6 +812,150 @@ def orthogonalize_room_polygons(plan: dict, grid: float = 0.1, diag_tol: float =
     return plan
 
 
+def fill_interior_gaps(plan: dict, cell: float = 0.4, min_gap_m2: float = 1.5) -> dict:
+    """Fill empty space ENCLOSED by rooms with a new room, so the plan reads complete.
+
+    The model sometimes leaves an interior void (rooms don't fully tile the
+    house). Since walls are rebuilt from room edges, that void renders as a
+    blank, wall-enclosed hole. This detects such holes and adds a room.
+
+    Method (grid flood-fill, distinguishes interior voids from exterior notches):
+      1. Rasterize the rooms' bounding box into `cell`-sized squares.
+      2. Mark a cell 'covered' if its center is inside any room.
+      3. Flood-fill uncovered cells inward from the bbox border -> 'exterior'
+         (so an L-shaped house's notch, which opens to the outside, is left alone).
+      4. Uncovered cells NOT reachable from the border = interior gaps.
+      5. Group contiguous gap cells; for each rectangular group >= min_gap_m2,
+         add a room spanning its bounding rectangle.
+    """
+    rooms = [r for r in plan.get("prostory", []) if r.get("polygon")]
+    if len(rooms) < 2:
+        return plan
+
+    xs = [p[0] for r in rooms for p in r["polygon"]]
+    ys = [p[1] for r in rooms for p in r["polygon"]]
+    minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
+    if maxx - minx < cell or maxy - miny < cell:
+        return plan
+
+    nx = max(1, int(round((maxx - minx) / cell)))
+    ny = max(1, int(round((maxy - miny) / cell)))
+    if nx * ny > 200_000:  # safety against degenerate/huge plans
+        return plan
+
+    cell_w = (maxx - minx) / nx
+    cell_h = (maxy - miny) / ny
+
+    def center(i, j):
+        return [minx + (i + 0.5) * cell_w, miny + (j + 0.5) * cell_h]
+
+    covered = [[False] * nx for _ in range(ny)]
+    for j in range(ny):
+        for i in range(nx):
+            c = center(i, j)
+            for r in rooms:
+                if _point_in_polygon(c, r["polygon"]):
+                    covered[j][i] = True
+                    break
+
+    # Flood-fill 'exterior' from any uncovered border cell
+    exterior = [[False] * nx for _ in range(ny)]
+    stack = []
+    for i in range(nx):
+        for j in (0, ny - 1):
+            if not covered[j][i] and not exterior[j][i]:
+                exterior[j][i] = True
+                stack.append((i, j))
+    for j in range(ny):
+        for i in (0, nx - 1):
+            if not covered[j][i] and not exterior[j][i]:
+                exterior[j][i] = True
+                stack.append((i, j))
+    while stack:
+        i, j = stack.pop()
+        for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ni, nj = i + di, j + dj
+            if 0 <= ni < nx and 0 <= nj < ny and not covered[nj][ni] and not exterior[nj][ni]:
+                exterior[nj][ni] = True
+                stack.append((ni, nj))
+
+    # Group remaining (interior gap) cells and fill rectangular ones
+    seen = [[False] * nx for _ in range(ny)]
+    existing_ids = {r.get("id") for r in plan.get("prostory", [])}
+    new_rooms = []
+    next_idx = 1
+
+    for j0 in range(ny):
+        for i0 in range(nx):
+            if covered[j0][i0] or exterior[j0][i0] or seen[j0][i0]:
+                continue
+            comp = []
+            st = [(i0, j0)]
+            seen[j0][i0] = True
+            while st:
+                i, j = st.pop()
+                comp.append((i, j))
+                for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    ni, nj = i + di, j + dj
+                    if (0 <= ni < nx and 0 <= nj < ny and not covered[nj][ni]
+                            and not exterior[nj][ni] and not seen[nj][ni]):
+                        seen[nj][ni] = True
+                        st.append((ni, nj))
+
+            gap_area = len(comp) * cell_w * cell_h
+            if gap_area < min_gap_m2:
+                continue
+            gi = [c[0] for c in comp]
+            gj = [c[1] for c in comp]
+            rx0 = minx + min(gi) * cell_w
+            rx1 = minx + (max(gi) + 1) * cell_w
+            ry0 = miny + min(gj) * cell_h
+            ry1 = miny + (max(gj) + 1) * cell_h
+
+            # Snap the rect edges to the nearest existing room-vertex coordinate
+            # so the filled room aligns exactly with its neighbors (shared walls).
+            snap_tol = cell * 1.6
+
+            def _snap(val, coords):
+                best, bd = val, snap_tol
+                for c in coords:
+                    if abs(c - val) < bd:
+                        bd, best = abs(c - val), c
+                return best
+
+            all_x = {round(p[0], 2) for r in rooms for p in r["polygon"]}
+            all_y = {round(p[1], 2) for r in rooms for p in r["polygon"]}
+            rx0, rx1 = _snap(rx0, all_x), _snap(rx1, all_x)
+            ry0, ry1 = _snap(ry0, all_y), _snap(ry1, all_y)
+            rect_area = (rx1 - rx0) * (ry1 - ry0)
+            # Only fill near-rectangular gaps — avoids overlapping neighbors on
+            # irregular voids.
+            if rect_area <= 0 or gap_area < 0.7 * rect_area:
+                continue
+            while f"G{next_idx}" in existing_ids:
+                next_idx += 1
+            gid = f"G{next_idx}"
+            existing_ids.add(gid)
+            next_idx += 1
+            new_rooms.append({
+                "id": gid,
+                "typ": "Hall",
+                "nazev": _CZ_LABELS.get("Hall", "Hala"),
+                "polygon": [
+                    [round(rx0, 2), round(ry0, 2)],
+                    [round(rx1, 2), round(ry0, 2)],
+                    [round(rx1, 2), round(ry1, 2)],
+                    [round(rx0, 2), round(ry1, 2)],
+                ],
+                "plocha_m2": round(rect_area, 2),
+                "venkovni": False,
+            })
+
+    if new_rooms:
+        plan.setdefault("prostory", []).extend(new_rooms)
+    return plan
+
+
 def recompute_areas(plan: dict) -> dict:
     """Recompute plocha_m2 from polygon vertices using the shoelace formula."""
     for r in plan.get("prostory", []):
@@ -1060,6 +1204,7 @@ def post_process(plan: dict, target_area: Optional[float] = None) -> dict:
     plan = snap_rooms_together(plan)              # pull near-touching rooms together
     plan = drop_disconnected_room_islands(plan)   # drop anything still floating
     plan = orthogonalize_room_polygons(plan)      # rectilinearize → kills diagonal wall spikes
+    plan = fill_interior_gaps(plan)               # fill enclosed voids so the plan reads complete
     plan = close_polygons(plan)
     plan = recompute_areas(plan)
 
