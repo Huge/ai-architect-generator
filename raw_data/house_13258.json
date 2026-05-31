@@ -1,0 +1,2866 @@
+{
+  "steny": [
+    {
+      "id": "W1",
+      "od": [
+        13.503,
+        -0.6069
+      ],
+      "do": [
+        1.2255,
+        -0.6069
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W2",
+      "od": [
+        13.503,
+        -11.725
+      ],
+      "do": [
+        13.503,
+        -0.6069
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W3",
+      "od": [
+        9.9647,
+        -11.725
+      ],
+      "do": [
+        13.503,
+        -11.725
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W4",
+      "od": [
+        9.9647,
+        -9.854600000000001
+      ],
+      "do": [
+        9.9647,
+        -11.725
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W5",
+      "od": [
+        9.9647,
+        -9.854600000000001
+      ],
+      "do": [
+        4.897,
+        -9.854600000000001
+      ],
+      "tloustka": 0.12,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W6",
+      "od": [
+        4.897,
+        -9.854600000000001
+      ],
+      "do": [
+        4.897,
+        -8.0587
+      ],
+      "tloustka": 0.12,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W7",
+      "od": [
+        2.3521,
+        -8.0587
+      ],
+      "do": [
+        4.897,
+        -8.0587
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W8",
+      "od": [
+        2.3521,
+        -8.0587
+      ],
+      "do": [
+        2.3521,
+        -4.4194
+      ],
+      "tloustka": 0.14,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W9",
+      "od": [
+        1.2255,
+        -4.4194
+      ],
+      "do": [
+        2.3521,
+        -4.4194
+      ],
+      "tloustka": 0.33120000000000005,
+      "typ": "obvodova",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W10",
+      "od": [
+        1.2255,
+        -0.6069
+      ],
+      "do": [
+        1.2255,
+        -4.4194
+      ],
+      "tloustka": 0.14000000000000015,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W11",
+      "od": [
+        2.4221,
+        -4.3188
+      ],
+      "do": [
+        8.9572,
+        -4.3188
+      ],
+      "tloustka": 0.12999999999999998,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W12",
+      "od": [
+        8.01385,
+        -0.6819
+      ],
+      "do": [
+        8.01385,
+        -1.3969
+      ],
+      "tloustka": 0.6254999999999996,
+      "typ": "obvodova",
+      "od_constraint": {
+        "host": "W1",
+        "t": 0.4471
+      },
+      "do_constraint": null
+    },
+    {
+      "id": "W13",
+      "od": [
+        7.766100000000001,
+        -1.3969
+      ],
+      "do": [
+        7.766100000000001,
+        -4.2538
+      ],
+      "tloustka": 0.13,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": {
+        "host": "W11",
+        "t": 0.8177
+      }
+    },
+    {
+      "id": "W14",
+      "od": [
+        9.9747,
+        -0.6819
+      ],
+      "do": [
+        9.9747,
+        -9.7946
+      ],
+      "tloustka": 0.13,
+      "typ": "pricka",
+      "od_constraint": {
+        "host": "W1",
+        "t": 0.2874
+      },
+      "do_constraint": null
+    },
+    {
+      "id": "W15",
+      "od": [
+        7.8311,
+        -2.6392
+      ],
+      "do": [
+        9.9097,
+        -2.6392
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": {
+        "host": "W13",
+        "t": 0.4348
+      },
+      "do_constraint": {
+        "host": "W14",
+        "t": 0.2275
+      }
+    },
+    {
+      "id": "W16",
+      "od": [
+        10.0397,
+        -4.3088
+      ],
+      "do": [
+        13.427999999999999,
+        -4.3088
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": {
+        "host": "W14",
+        "t": 0.4078
+      },
+      "do_constraint": {
+        "host": "W2",
+        "t": 0.667
+      }
+    },
+    {
+      "id": "W17",
+      "od": [
+        10.0397,
+        -8.058700000000002
+      ],
+      "do": [
+        13.427999999999999,
+        -8.058700000000002
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": {
+        "host": "W14",
+        "t": 0.8126
+      },
+      "do_constraint": {
+        "host": "W2",
+        "t": 0.3298
+      }
+    },
+    {
+      "id": "W18",
+      "od": [
+        4.957,
+        -8.0587
+      ],
+      "do": [
+        8.9572,
+        -8.0587
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": {
+        "host": "W6",
+        "t": 1
+      },
+      "do_constraint": null
+    },
+    {
+      "id": "W19",
+      "od": [
+        8.241900000000001,
+        -4.3838
+      ],
+      "do": [
+        8.241900000000001,
+        -7.9837
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": {
+        "host": "W11",
+        "t": 0.8905
+      },
+      "do_constraint": {
+        "host": "W18",
+        "t": 0.8212
+      }
+    },
+    {
+      "id": "W20",
+      "od": [
+        6.3864,
+        -9.1017
+      ],
+      "do": [
+        4.957,
+        -9.1017
+      ],
+      "tloustka": 0.12,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": {
+        "host": "W6",
+        "t": 0.4192
+      }
+    },
+    {
+      "id": "W21",
+      "od": [
+        6.3864,
+        -9.1017
+      ],
+      "do": [
+        6.3864,
+        -8.133700000000001
+      ],
+      "tloustka": 0.14,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": {
+        "host": "W18",
+        "t": 0.3573
+      }
+    },
+    {
+      "id": "W22",
+      "od": [
+        4.957,
+        -9.478150000000001
+      ],
+      "do": [
+        5.841799999999999,
+        -9.478150000000001
+      ],
+      "tloustka": 0.6329000000000007,
+      "typ": "nosna",
+      "od_constraint": {
+        "host": "W6",
+        "t": 0.2096
+      },
+      "do_constraint": null
+    },
+    {
+      "id": "W23",
+      "od": [
+        2.2821000000000002,
+        -7.9487000000000005
+      ],
+      "do": [
+        1.0941,
+        -7.9487000000000005
+      ],
+      "tloustka": 0.37,
+      "typ": "nosna",
+      "od_constraint": {
+        "host": "W8",
+        "t": 0.0302
+      },
+      "do_constraint": null
+    },
+    {
+      "id": "W24",
+      "od": [
+        0.7206999999999999,
+        -7.8387
+      ],
+      "do": [
+        1.0941,
+        -7.8387
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W25",
+      "od": [
+        0.7206999999999999,
+        -4.51
+      ],
+      "do": [
+        1.1555,
+        -4.51
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    },
+    {
+      "id": "W26",
+      "od": [
+        0.7206999999999999,
+        -7.8387
+      ],
+      "do": [
+        0.7206999999999999,
+        -4.51
+      ],
+      "tloustka": 0.15,
+      "typ": "pricka",
+      "od_constraint": null,
+      "do_constraint": null
+    }
+  ],
+  "otvory": [
+    {
+      "id": "O1",
+      "stena": "W1",
+      "pozice": 9.2617,
+      "sirka": 2.022399999999999,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "O2",
+      "stena": "W1",
+      "pozice": 6.2021,
+      "sirka": 2.0275,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "O3",
+      "stena": "W1",
+      "pozice": 4.164,
+      "sirka": 0.9744999999999994,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "O4",
+      "stena": "W2",
+      "pozice": 8.3016,
+      "sirka": 2.0484999999999993,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "O5",
+      "stena": "W2",
+      "pozice": 4.5346,
+      "sirka": 2.0170999999999992,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "O6",
+      "stena": "W2",
+      "pozice": 0.7676999999999998,
+      "sirka": 2.064200000000001,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "D1",
+      "stena": "W5",
+      "pozice": 2.2522,
+      "sirka": 0.9488,
+      "typ": "dvere",
+      "smer_otvirani": "right_in",
+      "pocet_kridel": 1,
+      "typ_dveri": "obouchodne"
+    },
+    {
+      "id": "D2",
+      "stena": "W8",
+      "pozice": 2.6289,
+      "sirka": 0.7686000000000002,
+      "typ": "dvere",
+      "smer_otvirani": "right_in",
+      "pocet_kridel": 1,
+      "typ_dveri": "obouchodne"
+    },
+    {
+      "id": "O7",
+      "stena": "W8",
+      "pozice": 0.31799999999999956,
+      "sirka": 2.2287,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "D3",
+      "stena": "W11",
+      "pozice": 1.3439,
+      "sirka": 0.8775000000000001,
+      "typ": "dvere",
+      "smer_otvirani": "right_out",
+      "pocet_kridel": 1,
+      "typ_dveri": "jednostranne"
+    },
+    {
+      "id": "D4",
+      "stena": "W13",
+      "pozice": 1.3772000000000002,
+      "sirka": 0.7648999999999996,
+      "typ": "dvere",
+      "smer_otvirani": "left_out",
+      "pocet_kridel": 1,
+      "typ_dveri": "jednostranne"
+    },
+    {
+      "id": "D5",
+      "stena": "W14",
+      "pozice": 7.4963000000000015,
+      "sirka": 0.8639999999999987,
+      "typ": "dvere",
+      "smer_otvirani": "left_out",
+      "pocet_kridel": 1,
+      "typ_dveri": "jednostranne"
+    },
+    {
+      "id": "D6",
+      "stena": "W14",
+      "pozice": 5.991199999999999,
+      "sirka": 0.8712000000000012,
+      "typ": "dvere",
+      "smer_otvirani": "right_out",
+      "pocet_kridel": 1,
+      "typ_dveri": "jednostranne"
+    },
+    {
+      "id": "D7",
+      "stena": "W14",
+      "pozice": 2.2268000000000003,
+      "sirka": 0.8782,
+      "typ": "dvere",
+      "smer_otvirani": "right_out",
+      "pocet_kridel": 1,
+      "typ_dveri": "jednostranne"
+    },
+    {
+      "id": "D8",
+      "stena": "W15",
+      "pozice": 0.7251999999999998,
+      "sirka": 0.6799000000000001,
+      "typ": "dvere",
+      "smer_otvirani": "left_in",
+      "pocet_kridel": 1,
+      "typ_dveri": "jednostranne"
+    },
+    {
+      "id": "D9",
+      "stena": "W18",
+      "pozice": 1.6480000000000001,
+      "sirka": 1.2182000000000006,
+      "typ": "dvere",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": "jednostranne"
+    },
+    {
+      "id": "D10",
+      "stena": "W21",
+      "pozice": 0.07360000000000014,
+      "sirka": 0.6444999999999993,
+      "typ": "dvere",
+      "smer_otvirani": "right_in",
+      "pocet_kridel": 1,
+      "typ_dveri": "jednostranne"
+    },
+    {
+      "id": "O8",
+      "stena": "W24",
+      "pozice": 0.07900000000000006,
+      "sirka": 0.2731,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "O9",
+      "stena": "W25",
+      "pozice": 0.1060000000000001,
+      "sirka": 0.2822,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    },
+    {
+      "id": "O10",
+      "stena": "W26",
+      "pozice": 0.08610000000000013,
+      "sirka": 3.1398,
+      "typ": "okno",
+      "smer_otvirani": null,
+      "pocet_kridel": 1,
+      "typ_dveri": null
+    }
+  ],
+  "prostory": [
+    {
+      "id": "P1",
+      "typ": "Bath",
+      "podtyp": null,
+      "polygon": [
+        [
+          9.9097,
+          -2.5642
+        ],
+        [
+          7.8311,
+          -2.5642
+        ],
+        [
+          7.8311,
+          -1.3969
+        ],
+        [
+          8.3266,
+          -1.3969
+        ],
+        [
+          8.3266,
+          -0.6819
+        ],
+        [
+          9.9097,
+          -0.6819
+        ]
+      ],
+      "plocha_m2": 3.56,
+      "nazev": "KPH",
+      "venkovni": false
+    },
+    {
+      "id": "P2",
+      "typ": "Undefined",
+      "podtyp": null,
+      "polygon": [
+        [
+          7.7011,
+          -4.2538
+        ],
+        [
+          4.3646,
+          -4.2538
+        ],
+        [
+          4.3646,
+          -4.2520999999999995
+        ],
+        [
+          7.7011,
+          -4.2520999999999995
+        ]
+      ],
+      "plocha_m2": 0.01,
+      "nazev": "UNDEFINED",
+      "venkovni": false
+    },
+    {
+      "id": "P3",
+      "typ": "Entry",
+      "podtyp": "Lobby",
+      "polygon": [
+        [
+          9.9097,
+          -9.7946
+        ],
+        [
+          5.841799999999999,
+          -9.7946
+        ],
+        [
+          5.841799999999999,
+          -9.1617
+        ],
+        [
+          6.4564,
+          -9.1617
+        ],
+        [
+          6.4564,
+          -8.133700000000001
+        ],
+        [
+          8.9572,
+          -8.133700000000001
+        ],
+        [
+          8.9572,
+          -7.9837
+        ],
+        [
+          8.3169,
+          -7.9837
+        ],
+        [
+          8.3169,
+          -4.3838
+        ],
+        [
+          8.9572,
+          -4.3838
+        ],
+        [
+          8.9572,
+          -4.2538
+        ],
+        [
+          7.8311,
+          -4.2538
+        ],
+        [
+          7.8311,
+          -2.7142000000000004
+        ],
+        [
+          9.9097,
+          -2.7142000000000004
+        ]
+      ],
+      "plocha_m2": 15.33,
+      "nazev": "ET",
+      "venkovni": false
+    },
+    {
+      "id": "P4",
+      "typ": "Kitchen",
+      "podtyp": null,
+      "polygon": [
+        [
+          7.7011,
+          -4.2520999999999995
+        ],
+        [
+          4.3646,
+          -4.2520999999999995
+        ],
+        [
+          4.3646,
+          -0.6819
+        ],
+        [
+          7.7011,
+          -0.6819
+        ]
+      ],
+      "plocha_m2": 11.91,
+      "nazev": "K",
+      "venkovni": false
+    },
+    {
+      "id": "P5",
+      "typ": "Dining",
+      "podtyp": null,
+      "polygon": [
+        [
+          4.3646,
+          -4.2538
+        ],
+        [
+          1.2955,
+          -4.2538
+        ],
+        [
+          1.2955,
+          -0.6819
+        ],
+        [
+          4.3646,
+          -0.6819
+        ]
+      ],
+      "plocha_m2": 10.96,
+      "nazev": "RH",
+      "venkovni": false
+    },
+    {
+      "id": "P6",
+      "typ": "LivingRoom",
+      "podtyp": null,
+      "polygon": [
+        [
+          8.1669,
+          -7.9837
+        ],
+        [
+          2.4221,
+          -7.9837
+        ],
+        [
+          2.4221,
+          -4.3838
+        ],
+        [
+          8.1669,
+          -4.3838
+        ]
+      ],
+      "plocha_m2": 20.68,
+      "nazev": "OH",
+      "venkovni": false
+    },
+    {
+      "id": "P7",
+      "typ": "Bedroom",
+      "podtyp": null,
+      "polygon": [
+        [
+          13.427999999999999,
+          -7.9837
+        ],
+        [
+          10.0397,
+          -7.9837
+        ],
+        [
+          10.0397,
+          -4.3838
+        ],
+        [
+          13.427999999999999,
+          -4.3838
+        ]
+      ],
+      "plocha_m2": 12.2,
+      "nazev": "MH",
+      "venkovni": false
+    },
+    {
+      "id": "P8",
+      "typ": "Bedroom",
+      "podtyp": null,
+      "polygon": [
+        [
+          13.427999999999999,
+          -4.2338000000000005
+        ],
+        [
+          10.0397,
+          -4.2338000000000005
+        ],
+        [
+          10.0397,
+          -0.6819
+        ],
+        [
+          13.427999999999999,
+          -0.6819
+        ]
+      ],
+      "plocha_m2": 12.03,
+      "nazev": "MH",
+      "venkovni": false
+    },
+    {
+      "id": "P9",
+      "typ": "Bedroom",
+      "podtyp": null,
+      "polygon": [
+        [
+          13.427999999999999,
+          -11.65
+        ],
+        [
+          10.0397,
+          -11.65
+        ],
+        [
+          10.0397,
+          -8.133700000000001
+        ],
+        [
+          13.427999999999999,
+          -8.133700000000001
+        ]
+      ],
+      "plocha_m2": 11.91,
+      "nazev": "MH",
+      "venkovni": false
+    },
+    {
+      "id": "P10",
+      "typ": "UserDefined",
+      "podtyp": null,
+      "polygon": [
+        [
+          2.2821000000000002,
+          -7.7637
+        ],
+        [
+          0.7957,
+          -7.7637
+        ],
+        [
+          0.7957,
+          -4.585
+        ],
+        [
+          2.2821000000000002,
+          -4.585
+        ]
+      ],
+      "plocha_m2": 4.72,
+      "nazev": "LASI.PARVEKE",
+      "venkovni": false
+    },
+    {
+      "id": "P11",
+      "typ": "Bath",
+      "podtyp": null,
+      "polygon": [
+        [
+          6.3164,
+          -9.0417
+        ],
+        [
+          4.957,
+          -9.0417
+        ],
+        [
+          4.957,
+          -8.133700000000001
+        ],
+        [
+          6.3164,
+          -8.133700000000001
+        ]
+      ],
+      "plocha_m2": 1.23,
+      "nazev": "WC",
+      "venkovni": false
+    }
+  ],
+  "vybaveni": [
+    {
+      "id": "V1",
+      "typ": "BaseCabinet",
+      "podtyp": null,
+      "kategorie": "kuchyn",
+      "stred": [
+        8.040207000000002,
+        -1.689605
+      ],
+      "polygon": [
+        [
+          7.8310569999999995,
+          -1.982355
+        ],
+        [
+          7.8310569999999995,
+          -1.396855
+        ],
+        [
+          8.249357,
+          -1.396855
+        ],
+        [
+          8.249357,
+          -1.982355
+        ]
+      ],
+      "sirka": 0.418,
+      "hloubka": 0.586,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": "north",
+      "vyska": 0.05,
+      "elevation": 1.05
+    },
+    {
+      "id": "V2",
+      "typ": "Sink",
+      "podtyp": null,
+      "kategorie": "koupelna",
+      "stred": [
+        8.040207000000002,
+        -1.689605
+      ],
+      "polygon": [
+        [
+          7.8310569999999995,
+          -1.982355
+        ],
+        [
+          7.8310569999999995,
+          -1.396855
+        ],
+        [
+          8.249357,
+          -1.396855
+        ],
+        [
+          8.249357,
+          -1.982355
+        ]
+      ],
+      "sirka": 0.418,
+      "hloubka": 0.586,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": "north",
+      "vyska": 0.9,
+      "elevation": 0
+    },
+    {
+      "id": "V3",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        8.621074000000002,
+        -7.179316999999998
+      ],
+      "polygon": [
+        [
+          8.321074,
+          -7.484667
+        ],
+        [
+          8.321074,
+          -6.8739669999999995
+        ],
+        [
+          8.921074,
+          -6.8739669999999995
+        ],
+        [
+          8.921074,
+          -7.484667
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.611,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V4",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        8.621074000000002,
+        -6.568662999999999
+      ],
+      "polygon": [
+        [
+          8.321074,
+          -6.874013
+        ],
+        [
+          8.321074,
+          -6.263312999999999
+        ],
+        [
+          8.921074,
+          -6.263312999999999
+        ],
+        [
+          8.921074,
+          -6.874013
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.611,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V5",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        8.621074000000002,
+        -5.958009
+      ],
+      "polygon": [
+        [
+          8.321074,
+          -6.2633589999999995
+        ],
+        [
+          8.321074,
+          -5.652659
+        ],
+        [
+          8.921074,
+          -5.652659
+        ],
+        [
+          8.921074,
+          -6.2633589999999995
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.611,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V6",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        8.621074000000002,
+        -5.347355000000001
+      ],
+      "polygon": [
+        [
+          8.321074,
+          -5.652705
+        ],
+        [
+          8.321074,
+          -5.042005
+        ],
+        [
+          8.921074,
+          -5.042005
+        ],
+        [
+          8.921074,
+          -5.652705
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.611,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V7",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        8.621074,
+        -4.736700999999999
+      ],
+      "polygon": [
+        [
+          8.321074,
+          -5.042051
+        ],
+        [
+          8.321074,
+          -4.431350999999999
+        ],
+        [
+          8.921074,
+          -4.431350999999999
+        ],
+        [
+          8.921074,
+          -5.042051
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.611,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V8",
+      "typ": "BaseCabinet",
+      "podtyp": null,
+      "kategorie": "kuchyn",
+      "stred": [
+        5.9514260000000005,
+        -8.343313
+      ],
+      "polygon": [
+        [
+          5.659826000000001,
+          -8.135563
+        ],
+        [
+          6.243026000000001,
+          -8.135563
+        ],
+        [
+          6.243026000000001,
+          -8.551063
+        ],
+        [
+          5.659826000000001,
+          -8.551063
+        ]
+      ],
+      "sirka": 0.583,
+      "hloubka": 0.415,
+      "tvar": "rect",
+      "uhel": 0,
+      "zadni_strana": "east",
+      "vyska": 0.05,
+      "elevation": 1.05
+    },
+    {
+      "id": "V9",
+      "typ": "Sink",
+      "podtyp": null,
+      "kategorie": "koupelna",
+      "stred": [
+        5.9514260000000005,
+        -8.343313
+      ],
+      "polygon": [
+        [
+          5.659826000000001,
+          -8.135563
+        ],
+        [
+          6.243026000000001,
+          -8.135563
+        ],
+        [
+          6.243026000000001,
+          -8.551063
+        ],
+        [
+          5.659826000000001,
+          -8.551063
+        ]
+      ],
+      "sirka": 0.583,
+      "hloubka": 0.415,
+      "tvar": "rect",
+      "uhel": 0,
+      "zadni_strana": "east",
+      "vyska": 0.9,
+      "elevation": 0
+    },
+    {
+      "id": "V10",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        11.733835999999998,
+        -4.0259
+      ],
+      "polygon": [
+        [
+          11.975836,
+          -4.2338000000000005
+        ],
+        [
+          11.491836,
+          -4.2338000000000005
+        ],
+        [
+          11.491836,
+          -3.818
+        ],
+        [
+          11.975836,
+          -3.818
+        ]
+      ],
+      "sirka": 0.484,
+      "hloubka": 0.416,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V11",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        11.249789999999999,
+        -4.0259
+      ],
+      "polygon": [
+        [
+          11.491789999999998,
+          -4.2338000000000005
+        ],
+        [
+          11.00779,
+          -4.2338000000000005
+        ],
+        [
+          11.00779,
+          -3.818
+        ],
+        [
+          11.491789999999998,
+          -3.818
+        ]
+      ],
+      "sirka": 0.484,
+      "hloubka": 0.416,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V12",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.765744999999999,
+        -4.0259
+      ],
+      "polygon": [
+        [
+          11.007745,
+          -4.2338000000000005
+        ],
+        [
+          10.523745,
+          -4.2338000000000005
+        ],
+        [
+          10.523745,
+          -3.818
+        ],
+        [
+          11.007745,
+          -3.818
+        ]
+      ],
+      "sirka": 0.484,
+      "hloubka": 0.416,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V13",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.281699,
+        -4.0259
+      ],
+      "polygon": [
+        [
+          10.523698999999999,
+          -4.2338000000000005
+        ],
+        [
+          10.039698999999999,
+          -4.2338000000000005
+        ],
+        [
+          10.039698999999999,
+          -3.818
+        ],
+        [
+          10.523698999999999,
+          -3.818
+        ]
+      ],
+      "sirka": 0.484,
+      "hloubka": 0.416,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V14",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.247599000000001,
+        -5.994366000000001
+      ],
+      "polygon": [
+        [
+          10.039699,
+          -6.224416
+        ],
+        [
+          10.039699,
+          -5.764316
+        ],
+        [
+          10.455499,
+          -5.764316
+        ],
+        [
+          10.455499,
+          -6.224416
+        ]
+      ],
+      "sirka": 0.416,
+      "hloubka": 0.46,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V15",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.247599000000001,
+        -5.534194
+      ],
+      "polygon": [
+        [
+          10.039699,
+          -5.764244
+        ],
+        [
+          10.039699,
+          -5.304144
+        ],
+        [
+          10.455499,
+          -5.304144
+        ],
+        [
+          10.455499,
+          -5.764244
+        ]
+      ],
+      "sirka": 0.416,
+      "hloubka": 0.46,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V16",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.247599000000001,
+        -5.074022
+      ],
+      "polygon": [
+        [
+          10.039699,
+          -5.304072
+        ],
+        [
+          10.039699,
+          -4.843972
+        ],
+        [
+          10.455499,
+          -4.843972
+        ],
+        [
+          10.455499,
+          -5.304072
+        ]
+      ],
+      "sirka": 0.416,
+      "hloubka": 0.46,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V17",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.247599000000001,
+        -4.61385
+      ],
+      "polygon": [
+        [
+          10.039699,
+          -4.8439
+        ],
+        [
+          10.039699,
+          -4.3838
+        ],
+        [
+          10.455499,
+          -4.3838
+        ],
+        [
+          10.455499,
+          -4.8439
+        ]
+      ],
+      "sirka": 0.416,
+      "hloubka": 0.46,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V18",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.274599999999998,
+        -11.491399999999999
+      ],
+      "polygon": [
+        [
+          10.0397,
+          -11.65
+        ],
+        [
+          10.0397,
+          -11.3328
+        ],
+        [
+          10.509500000000001,
+          -11.3328
+        ],
+        [
+          10.509500000000001,
+          -11.65
+        ]
+      ],
+      "sirka": 0.47,
+      "hloubka": 0.317,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V19",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.274599999999998,
+        -11.174155
+      ],
+      "polygon": [
+        [
+          10.0397,
+          -11.332755
+        ],
+        [
+          10.0397,
+          -11.015554999999999
+        ],
+        [
+          10.509500000000001,
+          -11.015554999999999
+        ],
+        [
+          10.509500000000001,
+          -11.332755
+        ]
+      ],
+      "sirka": 0.47,
+      "hloubka": 0.317,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V20",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.274599999999998,
+        -10.856909000000003
+      ],
+      "polygon": [
+        [
+          10.0397,
+          -11.015509
+        ],
+        [
+          10.0397,
+          -10.698309
+        ],
+        [
+          10.509500000000001,
+          -10.698309
+        ],
+        [
+          10.509500000000001,
+          -11.015509
+        ]
+      ],
+      "sirka": 0.47,
+      "hloubka": 0.317,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V21",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.274600000000003,
+        -10.539664
+      ],
+      "polygon": [
+        [
+          10.0397,
+          -10.698264
+        ],
+        [
+          10.0397,
+          -10.381064000000002
+        ],
+        [
+          10.509500000000001,
+          -10.381064000000002
+        ],
+        [
+          10.509500000000001,
+          -10.698264
+        ]
+      ],
+      "sirka": 0.47,
+      "hloubka": 0.317,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V22",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.274600000000001,
+        -10.222419
+      ],
+      "polygon": [
+        [
+          10.0397,
+          -10.381019000000002
+        ],
+        [
+          10.0397,
+          -10.063819
+        ],
+        [
+          10.509500000000001,
+          -10.063819
+        ],
+        [
+          10.509500000000001,
+          -10.381019000000002
+        ]
+      ],
+      "sirka": 0.47,
+      "hloubka": 0.317,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V23",
+      "typ": "BaseCabinet",
+      "podtyp": null,
+      "kategorie": "kuchyn",
+      "stred": [
+        4.740338,
+        -1.8313310000000003
+      ],
+      "polygon": [
+        [
+          4.364588,
+          -2.980781
+        ],
+        [
+          4.364588,
+          -0.6818810000000002
+        ],
+        [
+          5.1160879999999995,
+          -0.6818810000000002
+        ],
+        [
+          5.1160879999999995,
+          -2.980781
+        ]
+      ],
+      "sirka": 0.751,
+      "hloubka": 2.299,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": "north",
+      "vyska": 0.9,
+      "elevation": 0
+    },
+    {
+      "id": "V24",
+      "typ": "BaseCabinet",
+      "podtyp": null,
+      "kategorie": "kuchyn",
+      "stred": [
+        7.3984000000000005,
+        -1.6987810000000003
+      ],
+      "polygon": [
+        [
+          7.6984,
+          -0.6818810000000001
+        ],
+        [
+          7.6984,
+          -2.715681
+        ],
+        [
+          7.098400000000001,
+          -2.715681
+        ],
+        [
+          7.098400000000001,
+          -0.6818810000000001
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 2.034,
+      "tvar": "rect",
+      "uhel": 270,
+      "zadni_strana": "north",
+      "vyska": 0.9,
+      "elevation": 0
+    },
+    {
+      "id": "V25",
+      "typ": "ElectricalAppliance",
+      "podtyp": "IntegratedStove",
+      "kategorie": "kuchyn",
+      "stred": [
+        7.399338000000001,
+        -2.489945
+      ],
+      "polygon": [
+        [
+          7.699338,
+          -2.267745
+        ],
+        [
+          7.699338,
+          -2.712145
+        ],
+        [
+          7.099338,
+          -2.712145
+        ],
+        [
+          7.099338,
+          -2.267745
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.444,
+      "tvar": "rect",
+      "uhel": 270,
+      "zadni_strana": null,
+      "vyska": 0.9,
+      "elevation": 0
+    },
+    {
+      "id": "V26",
+      "typ": "DoubleSink",
+      "podtyp": null,
+      "kategorie": "kuchyn",
+      "stred": [
+        7.416493999999999,
+        -1.3897920000000001
+      ],
+      "polygon": [
+        [
+          7.716494,
+          -1.032392
+        ],
+        [
+          7.716494,
+          -1.747192
+        ],
+        [
+          7.116494,
+          -1.747192
+        ],
+        [
+          7.116494,
+          -1.032392
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.715,
+      "tvar": "rect",
+      "uhel": 270,
+      "zadni_strana": null,
+      "vyska": 0.9,
+      "elevation": 0
+    },
+    {
+      "id": "V27",
+      "typ": "WallCabinet",
+      "podtyp": null,
+      "kategorie": "kuchyn",
+      "stred": [
+        7.546681999999999,
+        -1.6994310000000001
+      ],
+      "polygon": [
+        [
+          7.696682,
+          -0.6818810000000001
+        ],
+        [
+          7.696682,
+          -2.716981
+        ],
+        [
+          7.396681999999999,
+          -2.716981
+        ],
+        [
+          7.396681999999999,
+          -0.6818810000000001
+        ]
+      ],
+      "sirka": 0.3,
+      "hloubka": 2.035,
+      "tvar": "rect",
+      "uhel": 270,
+      "zadni_strana": "north",
+      "vyska": 0.6,
+      "elevation": 1.4
+    },
+    {
+      "id": "V28",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        7.382606,
+        -3.952111
+      ],
+      "polygon": [
+        [
+          7.701056,
+          -4.252111
+        ],
+        [
+          7.0641560000000005,
+          -4.252111
+        ],
+        [
+          7.0641560000000005,
+          -3.652111
+        ],
+        [
+          7.701056,
+          -3.652111
+        ]
+      ],
+      "sirka": 0.637,
+      "hloubka": 0.6,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V29",
+      "typ": "BaseCabinet",
+      "podtyp": null,
+      "kategorie": "kuchyn",
+      "stred": [
+        6.526206999999999,
+        -3.952111
+      ],
+      "polygon": [
+        [
+          7.064157000000001,
+          -4.252111
+        ],
+        [
+          5.988257,
+          -4.252111
+        ],
+        [
+          5.988257,
+          -3.652111
+        ],
+        [
+          7.064157000000001,
+          -3.652111
+        ]
+      ],
+      "sirka": 1.076,
+      "hloubka": 0.6,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": "west",
+      "vyska": 0.9,
+      "elevation": 0
+    },
+    {
+      "id": "V30",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        5.688256,
+        -3.952112
+      ],
+      "polygon": [
+        [
+          5.988256,
+          -4.252112
+        ],
+        [
+          5.388256,
+          -4.252112
+        ],
+        [
+          5.388256,
+          -3.6521120000000002
+        ],
+        [
+          5.988256,
+          -3.6521120000000002
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.6,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V31",
+      "typ": "ElectricalAppliance",
+      "podtyp": "Refrigerator",
+      "kategorie": "kuchyn",
+      "stred": [
+        5.073496,
+        -3.951486
+      ],
+      "polygon": [
+        [
+          5.388256,
+          -4.251486
+        ],
+        [
+          4.758736,
+          -4.251486
+        ],
+        [
+          4.758736,
+          -3.651486
+        ],
+        [
+          5.388256,
+          -3.651486
+        ]
+      ],
+      "sirka": 0.63,
+      "hloubka": 0.6,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 1.7,
+      "elevation": 0
+    },
+    {
+      "id": "V32",
+      "typ": "WallCabinet",
+      "podtyp": null,
+      "kategorie": "kuchyn",
+      "stred": [
+        6.524356999999999,
+        -4.102111
+      ],
+      "polygon": [
+        [
+          7.060457,
+          -4.252111
+        ],
+        [
+          5.988257,
+          -4.252111
+        ],
+        [
+          5.988257,
+          -3.952111
+        ],
+        [
+          7.060457,
+          -3.952111
+        ]
+      ],
+      "sirka": 1.072,
+      "hloubka": 0.3,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": "west",
+      "vyska": 0.6,
+      "elevation": 1.4
+    },
+    {
+      "id": "V33",
+      "typ": "Toilet",
+      "podtyp": null,
+      "kategorie": "koupelna",
+      "stred": [
+        8.149704999999999,
+        -2.2769179999999998
+      ],
+      "polygon": [
+        [
+          7.8310569999999995,
+          -2.481918
+        ],
+        [
+          7.8310569999999995,
+          -2.071918
+        ],
+        [
+          8.468353,
+          -2.071918
+        ],
+        [
+          8.468353,
+          -2.481918
+        ]
+      ],
+      "sirka": 0.637,
+      "hloubka": 0.41,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": "west",
+      "vyska": 0.85,
+      "elevation": 0
+    },
+    {
+      "id": "V34",
+      "typ": "ShowerCab",
+      "podtyp": null,
+      "kategorie": "koupelna",
+      "stred": [
+        9.608491500000001,
+        -1.0378185
+      ],
+      "polygon": [
+        [
+          9.908414,
+          -0.6818810000000001
+        ],
+        [
+          9.908414,
+          -1.3937560000000002
+        ],
+        [
+          9.308569,
+          -1.3937560000000002
+        ],
+        [
+          9.308569,
+          -0.6818810000000001
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.712,
+      "tvar": "rect",
+      "uhel": 270,
+      "zadni_strana": null,
+      "vyska": 1.8,
+      "elevation": 0
+    },
+    {
+      "id": "V35",
+      "typ": "ElectricalAppliance",
+      "podtyp": "WashingMachine",
+      "kategorie": "kuchyn",
+      "stred": [
+        9.600647000000002,
+        -2.19981
+      ],
+      "polygon": [
+        [
+          9.909737,
+          -2.51253
+        ],
+        [
+          9.291557000000001,
+          -2.51253
+        ],
+        [
+          9.291557000000001,
+          -1.8870900000000002
+        ],
+        [
+          9.909737,
+          -1.8870900000000002
+        ]
+      ],
+      "sirka": 0.618,
+      "hloubka": 0.625,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 0.9,
+      "elevation": 0
+    },
+    {
+      "id": "V36",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        8.619354999999999,
+        -7.706467000000002
+      ],
+      "polygon": [
+        [
+          8.319355,
+          -7.928267
+        ],
+        [
+          8.319355,
+          -7.484667
+        ],
+        [
+          8.919355000000001,
+          -7.484667
+        ],
+        [
+          8.919355000000001,
+          -7.928267
+        ]
+      ],
+      "sirka": 0.6,
+      "hloubka": 0.444,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V37",
+      "typ": "Toilet",
+      "podtyp": null,
+      "kategorie": "koupelna",
+      "stred": [
+        5.290959,
+        -8.698076499999999
+      ],
+      "polygon": [
+        [
+          4.956975,
+          -8.884155
+        ],
+        [
+          4.956975,
+          -8.511998
+        ],
+        [
+          5.624943,
+          -8.511998
+        ],
+        [
+          5.624943,
+          -8.884155
+        ]
+      ],
+      "sirka": 0.668,
+      "hloubka": 0.372,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": "west",
+      "vyska": 0.85,
+      "elevation": 0
+    },
+    {
+      "id": "V38",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        6.145808,
+        -9.477664
+      ],
+      "polygon": [
+        [
+          5.842258,
+          -9.793614
+        ],
+        [
+          5.842258,
+          -9.161714
+        ],
+        [
+          6.449358000000001,
+          -9.161714
+        ],
+        [
+          6.449358000000001,
+          -9.793614
+        ]
+      ],
+      "sirka": 0.607,
+      "hloubka": 0.632,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V39",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        9.065036999999998,
+        -9.554336
+      ],
+      "polygon": [
+        [
+          9.909737,
+          -9.794086
+        ],
+        [
+          8.220336999999999,
+          -9.794086
+        ],
+        [
+          8.220336999999999,
+          -9.314586
+        ],
+        [
+          9.909737,
+          -9.314586
+        ]
+      ],
+      "sirka": 1.689,
+      "hloubka": 0.48,
+      "tvar": "rect",
+      "uhel": 180,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    },
+    {
+      "id": "V40",
+      "typ": "Shower",
+      "podtyp": null,
+      "kategorie": "koupelna",
+      "stred": [
+        9.813414,
+        -0.989341
+      ],
+      "polygon": [
+        [
+          9.908414,
+          -0.829341
+        ],
+        [
+          9.908414,
+          -1.149341
+        ],
+        [
+          9.718414000000001,
+          -1.149341
+        ],
+        [
+          9.718414000000001,
+          -0.829341
+        ]
+      ],
+      "sirka": 0.19,
+      "hloubka": 0.32,
+      "tvar": "rect",
+      "uhel": 270,
+      "zadni_strana": "north",
+      "vyska": 0.97,
+      "elevation": 1.35
+    },
+    {
+      "id": "V41",
+      "typ": "Closet",
+      "podtyp": null,
+      "kategorie": "uloziste",
+      "stred": [
+        10.274600000000001,
+        -9.894019
+      ],
+      "polygon": [
+        [
+          10.0397,
+          -10.063819
+        ],
+        [
+          10.0397,
+          -9.724219
+        ],
+        [
+          10.509500000000001,
+          -9.724219
+        ],
+        [
+          10.509500000000001,
+          -10.063819
+        ]
+      ],
+      "sirka": 0.47,
+      "hloubka": 0.34,
+      "tvar": "rect",
+      "uhel": 90,
+      "zadni_strana": null,
+      "vyska": 2,
+      "elevation": 0
+    }
+  ],
+  "sloupy": [],
+  "zabradli": [],
+  "schodiste": [],
+  "metadata": {
+    "source": "pudorys",
+    "original_id": "13258",
+    "viewbox": "0 0 1357.8001022338867 1180.000057220459",
+    "width": 1357.8001022338867,
+    "height": 1180.000057220459,
+    "scale_px_to_m": 0.01,
+    "wall_outline": [
+      {
+        "exterior": [
+          [
+            1.1555,
+            -4.4350000000000005
+          ],
+          [
+            0.7206999999999999,
+            -4.4350000000000005
+          ],
+          [
+            0.7206999999999999,
+            -4.51
+          ],
+          [
+            0.6456999999999999,
+            -4.51
+          ],
+          [
+            0.6456999999999999,
+            -7.8387
+          ],
+          [
+            0.7206999999999999,
+            -7.8387
+          ],
+          [
+            0.7206999999999999,
+            -7.9137
+          ],
+          [
+            1.0941,
+            -7.9137
+          ],
+          [
+            1.0941,
+            -8.133700000000001
+          ],
+          [
+            2.2821000000000002,
+            -8.133700000000001
+          ],
+          [
+            2.2821000000000002,
+            -8.0587
+          ],
+          [
+            2.3521,
+            -8.0587
+          ],
+          [
+            2.3521,
+            -8.133700000000001
+          ],
+          [
+            4.837,
+            -8.133700000000001
+          ],
+          [
+            4.837,
+            -9.854600000000001
+          ],
+          [
+            4.897,
+            -9.854600000000001
+          ],
+          [
+            4.897,
+            -9.9146
+          ],
+          [
+            9.889700000000001,
+            -9.9146
+          ],
+          [
+            9.889700000000001,
+            -11.725
+          ],
+          [
+            9.9647,
+            -11.725
+          ],
+          [
+            9.9647,
+            -11.8
+          ],
+          [
+            13.503,
+            -11.8
+          ],
+          [
+            13.503,
+            -11.725
+          ],
+          [
+            13.578,
+            -11.725
+          ],
+          [
+            13.578,
+            -0.6069
+          ],
+          [
+            13.503,
+            -0.6069
+          ],
+          [
+            13.503,
+            -0.5319
+          ],
+          [
+            1.2255,
+            -0.5319
+          ],
+          [
+            1.2255,
+            -0.6069
+          ],
+          [
+            1.1555000000000002,
+            -0.6069
+          ],
+          [
+            1.1555000000000002,
+            -4.4194
+          ],
+          [
+            1.2255,
+            -4.4194
+          ],
+          [
+            1.2255,
+            -4.585
+          ],
+          [
+            2.2821000000000002,
+            -4.585
+          ],
+          [
+            2.2821000000000002,
+            -7.7637
+          ],
+          [
+            0.7957,
+            -7.7637
+          ],
+          [
+            0.7957,
+            -4.585
+          ],
+          [
+            1.1555,
+            -4.585
+          ]
+        ],
+        "holes": [
+          [
+            [
+              10.0397,
+              -0.6819
+            ],
+            [
+              13.427999999999999,
+              -0.6819
+            ],
+            [
+              13.427999999999999,
+              -4.2338
+            ],
+            [
+              10.0397,
+              -4.2338
+            ]
+          ],
+          [
+            [
+              10.0397,
+              -8.133700000000001
+            ],
+            [
+              13.427999999999999,
+              -8.133700000000001
+            ],
+            [
+              13.427999999999999,
+              -11.65
+            ],
+            [
+              10.0397,
+              -11.65
+            ],
+            [
+              10.0397,
+              -9.854600000000001
+            ],
+            [
+              9.9647,
+              -9.854600000000001
+            ],
+            [
+              9.9647,
+              -9.7946
+            ],
+            [
+              10.0397,
+              -9.7946
+            ]
+          ],
+          [
+            [
+              13.427999999999999,
+              -4.3838
+            ],
+            [
+              13.427999999999999,
+              -7.983700000000002
+            ],
+            [
+              10.0397,
+              -7.983700000000002
+            ],
+            [
+              10.0397,
+              -4.3838
+            ]
+          ],
+          [
+            [
+              5.841799999999999,
+              -9.1617
+            ],
+            [
+              6.3864,
+              -9.1617
+            ],
+            [
+              6.3864,
+              -9.1017
+            ],
+            [
+              6.4564,
+              -9.1017
+            ],
+            [
+              6.4564,
+              -8.133700000000001
+            ],
+            [
+              8.9572,
+              -8.133700000000001
+            ],
+            [
+              8.9572,
+              -7.9837
+            ],
+            [
+              8.3169,
+              -7.9837
+            ],
+            [
+              8.3169,
+              -4.3838
+            ],
+            [
+              8.9572,
+              -4.3838
+            ],
+            [
+              8.9572,
+              -4.2538
+            ],
+            [
+              7.8311,
+              -4.2538
+            ],
+            [
+              7.8311,
+              -2.7142000000000004
+            ],
+            [
+              9.9097,
+              -2.7142000000000004
+            ],
+            [
+              9.9097,
+              -9.7946
+            ],
+            [
+              5.841799999999999,
+              -9.7946
+            ]
+          ],
+          [
+            [
+              9.9097,
+              -0.6819
+            ],
+            [
+              9.9097,
+              -2.5642
+            ],
+            [
+              7.8311,
+              -2.5642
+            ],
+            [
+              7.8311,
+              -1.3969
+            ],
+            [
+              8.3266,
+              -1.3969
+            ],
+            [
+              8.3266,
+              -0.6819
+            ]
+          ],
+          [
+            [
+              4.897,
+              -8.0587
+            ],
+            [
+              4.897,
+              -7.9837
+            ],
+            [
+              2.4221,
+              -7.9837
+            ],
+            [
+              2.4221,
+              -4.4194
+            ],
+            [
+              2.3521,
+              -4.4194
+            ],
+            [
+              2.3521,
+              -4.2538
+            ],
+            [
+              1.2955,
+              -4.2538
+            ],
+            [
+              1.2955,
+              -0.6819
+            ],
+            [
+              7.7011,
+              -0.6819
+            ],
+            [
+              7.7011,
+              -4.2538
+            ],
+            [
+              2.4221,
+              -4.2538
+            ],
+            [
+              2.4221,
+              -4.3838
+            ],
+            [
+              8.1669,
+              -4.3838
+            ],
+            [
+              8.1669,
+              -7.9837
+            ],
+            [
+              4.957,
+              -7.9837
+            ],
+            [
+              4.957,
+              -8.0587
+            ]
+          ],
+          [
+            [
+              6.3164,
+              -9.0417
+            ],
+            [
+              4.957,
+              -9.0417
+            ],
+            [
+              4.957,
+              -8.133700000000001
+            ],
+            [
+              6.3164,
+              -8.133700000000001
+            ]
+          ]
+        ]
+      }
+    ],
+    "plocha_budovy_m2": 22.9,
+    "ma_obvod": true,
+    "stats": {
+      "pocet_sten": 26,
+      "pocet_uzlu": 39,
+      "pocet_otvoru": 20,
+      "pocet_prostoru": 11,
+      "pocet_vybaveni": 41,
+      "pocet_sloupu": 0,
+      "pocet_zabradli": 0,
+      "pocet_schodist": 0,
+      "typy_sten": {
+        "obvodova": 2,
+        "nosna": 2,
+        "pricka": 22
+      },
+      "typy_prostoru": {
+        "Bath": 2,
+        "Undefined": 1,
+        "Entry/Lobby": 1,
+        "Kitchen": 1,
+        "Dining": 1,
+        "LivingRoom": 1,
+        "Bedroom": 3,
+        "UserDefined": 1
+      },
+      "kategorie_vybaveni": {
+        "kuchyn": 11,
+        "koupelna": 6,
+        "uloziste": 24
+      }
+    }
+  }
+}
