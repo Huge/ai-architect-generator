@@ -9,6 +9,15 @@ The system pairs a **fine-tuned LLM** (Qwen2.5-Coder + LoRA) with a
 watertight, correctly scaled, and architecturally sensible — then serves it
 through an interactive **Gradio UI** with floor-plan visualization.
 
+## Example outputs
+
+Generated live through the Gradio UI and cleaned by the post-processor —
+watertight, exactly area-matched, orthogonal walls, Czech room labels.
+
+| 60 m² | 120 m² | 125 m² |
+|:---:|:---:|:---:|
+| ![60 m² floor plan](docs/images/plan_60m2.png) | ![120 m² floor plan](docs/images/plan_120m2.png) | ![125 m² floor plan](docs/images/plan_125m2.png) |
+
 ---
 
 ## Why this architecture
