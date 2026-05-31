@@ -26,7 +26,7 @@ import torch
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from post_process import post_process, _polygon_area
+from post_process import post_process, _polygon_area, has_closed_exterior_loop
 
 
 BASE_MODEL = "Qwen/Qwen2.5-Coder-14B-Instruct"
@@ -115,6 +115,7 @@ def score_plan(plan: dict, target_area: float) -> dict:
 
     return {
         "has_keys": has_keys,
+        "watertight": has_closed_exterior_loop(plan),
         "num_walls": len(walls),
         "num_openings": len(openings),
         "num_rooms": len(rooms),
@@ -243,7 +244,7 @@ def main() -> int:
     n_valid = len(valid_rows)
 
     def avg(key: str) -> float:
-        vals = [r[key] for r in valid_rows if key in r]
+        vals = [float(r[key]) for r in valid_rows if key in r]
         return round(statistics.mean(vals), 3) if vals else 0.0
 
     summary = {
@@ -252,6 +253,10 @@ def main() -> int:
         "valid_json_rate": round(n_valid / n, 3) if n else 0.0,
         "total_time_s": round(total_time, 1),
         "avg_gen_time_s": round(statistics.mean(r["gen_time_s"] for r in rows), 2) if rows else 0.0,
+
+        # Watertight rate — the headline metric (exterior walls form a closed loop)
+        "raw_watertight_rate": avg("raw_watertight"),
+        "clean_watertight_rate": avg("clean_watertight"),
 
         # Raw model output
         "raw_avg_rooms": avg("raw_num_rooms"),
@@ -282,10 +287,12 @@ def main() -> int:
     print("=" * 60)
     print(f"  samples:              {summary['num_samples']}  (valid JSON: {summary['valid_json_rate']*100:.0f}%)")
     print(f"  total time:           {summary['total_time_s']}s  (avg {summary['avg_gen_time_s']}s / sample)")
+    print(f"  WATERTIGHT rate:      raw {summary['raw_watertight_rate']*100:.0f}%  ->  cleaned {summary['clean_watertight_rate']*100:.0f}%")
     print()
     print(f"  {'metric':30s} {'raw':>10s} {'cleaned':>10s}  delta")
     print(f"  {'-'*30} {'-'*10} {'-'*10}  -----")
     for label, raw_k, clean_k in [
+        ("watertight_rate (higher)",      "raw_watertight_rate",    "clean_watertight_rate"),
         ("area_rel_error (lower=better)", "raw_avg_area_rel_error", "clean_avg_area_rel_error"),
         ("orphan_room_ratio (lower)",     "raw_avg_orphan_ratio",   "clean_avg_orphan_ratio"),
         ("opening_validity (higher)",     "raw_avg_opening_validity","clean_avg_opening_validity"),

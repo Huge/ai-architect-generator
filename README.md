@@ -175,12 +175,29 @@ python app.py        # launches the Gradio UI
 
 ---
 
-## Deployment (Hugging Face Spaces)
+## Running & deployment
 
-<!-- TODO: finalize after validating the model. Outline: -->
-- Push the LoRA adapter to the HF Hub
-- Gradio SDK Space loading base model + adapter
-- `app.py` works as the Space entrypoint with minimal changes
+The model is Qwen2.5-Coder-14B (~28 GB in bf16), so the recommended way to run
+the project is **locally on a CUDA GPU**:
+
+```bash
+python app.py        # launches the Gradio UI on http://localhost:7860
+```
+
+A short **demo video** shows generation + visualization without requiring judges
+to provision a 14B-capable GPU.
+
+### Hosting options
+| Option | Notes |
+|--------|-------|
+| Local GPU (recommended) | Run `app.py` directly; needs ~30 GB VRAM |
+| HF Spaces (paid GPU, A10G/A100) | Push the adapter to the Hub; `app.py` is the Space entrypoint |
+| 4-bit quantized | Load the base model with `bitsandbytes` 4-bit to fit a ~16 GB GPU |
+
+Back up / share the trained adapter:
+```bash
+huggingface-cli upload <user>/qwen-kalkulio-lora-14b-v4 ./qwen-kalkulio-lora-14b-v4/final .
+```
 
 ---
 

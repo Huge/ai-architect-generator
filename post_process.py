@@ -43,6 +43,26 @@ def _polygon_area(polygon: list[list[float]]) -> float:
     return abs(s) / 2.0
 
 
+def _drop_collinear_vertices(pts: list[list[float]], eps: float = 1e-6) -> list[list[float]]:
+    """Remove vertices that lie on the straight line between their neighbors.
+
+    Operates on an OPEN ring (no duplicate closing point). Collapses the
+    out-and-back degenerate spikes that share a line into nothing.
+    """
+    n = len(pts)
+    if n < 3:
+        return pts
+    keep = []
+    for i in range(n):
+        ax, ay = pts[(i - 1) % n]
+        bx, by = pts[i]
+        cx, cy = pts[(i + 1) % n]
+        cross = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+        if abs(cross) > eps:
+            keep.append(pts[i])
+    return keep if len(keep) >= 3 else pts
+
+
 def _polygon_centroid(polygon: list[list[float]]) -> tuple[float, float]:
     n = len(polygon)
     if n == 0:
@@ -718,6 +738,80 @@ def close_polygons(plan: dict) -> dict:
     return plan
 
 
+def orthogonalize_room_polygons(plan: dict, grid: float = 0.1, diag_tol: float = 0.25,
+                                rect_ratio: float = 0.80) -> dict:
+    """Make every room polygon clean and rectilinear BEFORE walls are rebuilt.
+
+    rebuild_walls_from_rooms draws a wall for EVERY room-polygon edge, so a
+    single diagonal or stray vertex becomes a diagonal 'spike' wall. This pass
+    guarantees each room polygon uses only horizontal/vertical edges:
+
+      1. Snap vertices to a fine grid (kills sub-cm float jitter).
+      2. Drop consecutive-duplicate and collinear vertices (collapses the
+         out-and-back spikes that lie on one line).
+      3. If any edge is still diagonal (both |dx| and |dy| > diag_tol), OR the
+         polygon is essentially a filled rectangle (area >= rect_ratio * bbox),
+         replace the whole polygon with its axis-aligned bounding box.
+
+    Genuinely rectilinear rooms (L-shapes made of H/V edges only) pass through
+    untouched; only spiky/diagonal polygons get rectangularized.
+    """
+    for r in plan.get("prostory", []):
+        poly = r.get("polygon")
+        if not poly or len(poly) < 3:
+            continue
+
+        # Work on an OPEN ring (strip duplicate closing point if present)
+        pts = [[p[0], p[1]] for p in poly]
+        if len(pts) >= 2 and pts[0] == pts[-1]:
+            pts = pts[:-1]
+        if len(pts) < 3:
+            continue
+
+        # 1. snap to grid
+        snapped = [[round(x / grid) * grid, round(y / grid) * grid] for x, y in pts]
+
+        # 2. remove consecutive duplicates
+        dedup: list[list[float]] = []
+        for p in snapped:
+            if not dedup or abs(p[0] - dedup[-1][0]) > 1e-9 or abs(p[1] - dedup[-1][1]) > 1e-9:
+                dedup.append(p)
+        if len(dedup) >= 2 and dedup[0] == dedup[-1]:
+            dedup = dedup[:-1]
+        if len(dedup) < 3:
+            continue
+
+        cleaned = _drop_collinear_vertices(dedup)
+
+        xs = [p[0] for p in cleaned]
+        ys = [p[1] for p in cleaned]
+        x0, y0, x1, y1 = min(xs), min(ys), max(xs), max(ys)
+        bbox_area = (x1 - x0) * (y1 - y0)
+
+        has_diagonal = False
+        n = len(cleaned)
+        for i in range(n):
+            ax, ay = cleaned[i]
+            bx, by = cleaned[(i + 1) % n]
+            if abs(bx - ax) > diag_tol and abs(by - ay) > diag_tol:
+                has_diagonal = True
+                break
+
+        poly_area = _polygon_area(cleaned)
+        nearly_rect = bbox_area > 0 and poly_area >= rect_ratio * bbox_area
+
+        if (has_diagonal or nearly_rect) and (x1 - x0) >= grid and (y1 - y0) >= grid:
+            new_poly = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]  # CCW rectangle
+        else:
+            new_poly = cleaned
+
+        new_poly = [[round(x, 2), round(y, 2)] for x, y in new_poly]
+        new_poly.append([new_poly[0][0], new_poly[0][1]])  # close ring
+        r["polygon"] = new_poly
+
+    return plan
+
+
 def recompute_areas(plan: dict) -> dict:
     """Recompute plocha_m2 from polygon vertices using the shoelace formula."""
     for r in plan.get("prostory", []):
@@ -965,6 +1059,7 @@ def post_process(plan: dict, target_area: Optional[float] = None) -> dict:
     plan = drop_overlapping_rooms(plan)
     plan = snap_rooms_together(plan)              # pull near-touching rooms together
     plan = drop_disconnected_room_islands(plan)   # drop anything still floating
+    plan = orthogonalize_room_polygons(plan)      # rectilinearize → kills diagonal wall spikes
     plan = close_polygons(plan)
     plan = recompute_areas(plan)
 
