@@ -1,0 +1,11 @@
+# Install in order: torch must be installed BEFORE flash-attn
+torch>=2.0.0
+transformers>=4.40.0
+peft>=0.10.0
+trl>=0.8.0
+datasets>=2.16.0
+accelerate>=0.28.0
+
+# flash-attn must be installed AFTER torch (it compiles against your CUDA/torch version)
+# Install separately: pip install flash-attn
+# flash-attn>=2.5.0
